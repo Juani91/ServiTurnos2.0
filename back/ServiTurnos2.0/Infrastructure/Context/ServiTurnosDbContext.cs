@@ -10,8 +10,8 @@ namespace Infrastructure.Context
 
         }
 
-        public DbSet<User> Customer { get; set; }
-        public DbSet<Professional> Professional { get; set; }
-        public DbSet<Admin> Admin { get; set; }
+        public DbSet<User> Customers { get; set; }
+        public DbSet<Professional> Professionals { get; set; }
+        public DbSet<Admin> Admins { get; set; }
     }
 }
