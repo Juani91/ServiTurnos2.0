@@ -14,11 +14,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// DB CONTEXT
 builder.Services.AddDbContext<ServiTurnosDbContext>
 (options => options.UseSqlite(builder.Configuration.GetConnectionString("Connection")));
 
+// REPOSITORIOS (Ver)
 builder.Services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
+
+// SERVICIOS
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IProfessionalService, ProfessionalService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 var app = builder.Build();
 
