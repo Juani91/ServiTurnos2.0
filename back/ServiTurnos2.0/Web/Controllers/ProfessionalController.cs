@@ -1,6 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Models.Request;
-using Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Controllers
@@ -35,10 +35,18 @@ namespace Web.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOrProfessional")]
         public IActionResult DeleteProfessional([FromRoute] int id)
         {
             try
             {
+                // Validación para que al ser Professional no se pueda eliminar a otro Professional
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                var userType = User.FindFirst("UserType")?.Value;
+
+                if (userType != "Admin" && userIdFromToken != id)
+                    return Forbid("No tenés permiso para eliminar este perfil.");
+
                 _professionalService.DeleteProfessional(id);
                 return Ok("Profesional eliminado correctamente.");
             }
@@ -53,10 +61,18 @@ namespace Web.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOrProfessional")]
         public IActionResult UpdateProfessional([FromRoute] int id, [FromBody] ProfessionalRequest request)
         {
             try
             {
+                // Validación para que al ser Professional no se pueda modificar a otro Professional
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                var userType = User.FindFirst("UserType")?.Value;
+
+                if (userType != "Admin" && userIdFromToken != id)
+                    return Forbid("No tenés permiso para modificar este perfil.");
+
                 _professionalService.UpdateProfessional(id, request);
                 return Ok("Profesional modificado correctamente.");
             }
@@ -70,7 +86,9 @@ namespace Web.Controllers
             }
         }
 
+
         [HttpGet]
+        [Authorize(Policy = "AdminOrCustomer")]
         public IActionResult GetAllProfessionals()
         {
             try

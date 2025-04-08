@@ -1,11 +1,13 @@
 ﻿using Application.Interfaces;
 using Application.Models.Request;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = "AdminOnly")]
     public class AdminController : ControllerBase
     {
         private readonly IAdminService _adminService;

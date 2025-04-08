@@ -11,6 +11,9 @@ namespace Application.Mappings
             return new Customer
             {
                 Email = request.Email,
+                // Acá iría la encriptación de la contraseña por medio de un helper,
+                // por lo general se hashea en el front igual para que no viaje desde
+                // el front hasta el back desencriptada
                 Password = request.Password,
                 FirstName = request.FirstName,
                 LastName = request.LastName,

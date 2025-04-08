@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Models.Request;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Controllers
@@ -34,10 +35,18 @@ namespace Web.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOrCustomer")]
         public IActionResult DeleteCustomer([FromRoute] int id)
         {
             try
             {
+                // Validación para que al ser Customer no se pueda eliminar a otro Customer
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                var userType = User.FindFirst("UserType")?.Value;
+
+                if (userType != "Admin" && userIdFromToken != id)
+                    return Forbid("No tenés permiso para eliminar este perfil.");
+
                 _customerService.DeleteCustomer(id);
                 return Ok("Cliente eliminado correctamente.");
             }
@@ -52,10 +61,18 @@ namespace Web.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOrCustomer")]
         public IActionResult UpdateCustomer([FromRoute] int id, [FromBody] CustomerRequest request)
         {
             try
             {
+                // Validación para que al ser Customer no se pueda modificar a otro Customer
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                var userType = User.FindFirst("UserType")?.Value;
+
+                if (userType != "Admin" && userIdFromToken != id)
+                    return Forbid("No tenés permiso para modificar este perfil.");
+
                 _customerService.UpdateCustomer(id, request);
                 return Ok("Cliente modificado correctamente.");
             }
@@ -70,6 +87,7 @@ namespace Web.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult GetAllCustomers()
         {
             try
