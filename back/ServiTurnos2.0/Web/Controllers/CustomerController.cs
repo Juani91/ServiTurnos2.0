@@ -45,7 +45,7 @@ namespace Web.Controllers
                 var userType = User.FindFirst("UserType")?.Value;
 
                 if (userType != "Admin" && userIdFromToken != id)
-                    return Forbid("No tenés permiso para eliminar este perfil.");
+                    return StatusCode(403, "No tenés permiso para eliminar este perfil.");
 
                 _customerService.DeleteCustomer(id);
                 return Ok("Cliente eliminado correctamente.");
@@ -71,7 +71,7 @@ namespace Web.Controllers
                 var userType = User.FindFirst("UserType")?.Value;
 
                 if (userType != "Admin" && userIdFromToken != id)
-                    return Forbid("No tenés permiso para modificar este perfil.");
+                    return StatusCode(403, "No tenés permiso para modificar este perfil.");
 
                 _customerService.UpdateCustomer(id, request);
                 return Ok("Cliente modificado correctamente.");

@@ -45,7 +45,7 @@ namespace Web.Controllers
                 var userType = User.FindFirst("UserType")?.Value;
 
                 if (userType != "Admin" && userIdFromToken != id)
-                    return Forbid("No tenés permiso para eliminar este perfil.");
+                    return StatusCode(403, "No tenés permiso para eliminar este perfil.");
 
                 _professionalService.DeleteProfessional(id);
                 return Ok("Profesional eliminado correctamente.");
@@ -71,7 +71,7 @@ namespace Web.Controllers
                 var userType = User.FindFirst("UserType")?.Value;
 
                 if (userType != "Admin" && userIdFromToken != id)
-                    return Forbid("No tenés permiso para modificar este perfil.");
+                    return StatusCode(403, "No tenés permiso para modificar este perfil.");
 
                 _professionalService.UpdateProfessional(id, request);
                 return Ok("Profesional modificado correctamente.");
@@ -85,7 +85,6 @@ namespace Web.Controllers
                 return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
             }
         }
-
 
         [HttpGet]
         [Authorize(Policy = "AdminOrCustomer")]

@@ -40,6 +40,12 @@ namespace Web.Controllers
         {
             try
             {
+                // Validación para que un Admin no pueda eliminar a otro Admin
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+
+                if (userIdFromToken != id)
+                    return StatusCode(403, "No tenés permiso para eliminar a otro administrador.");
+
                 _adminService.DeleteAdmin(id);
                 return Ok("Administrador eliminado correctamente.");
             }
@@ -58,6 +64,12 @@ namespace Web.Controllers
         {
             try
             {
+                // Validación para que un Admin no pueda modificar a otro Admin
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+
+                if (userIdFromToken != id)
+                    return StatusCode(403, "No tenés permiso para modificar a otro administrador.");
+
                 _adminService.UpdateAdmin(id, request);
                 return Ok("Administrador modificado correctamente.");
             }
