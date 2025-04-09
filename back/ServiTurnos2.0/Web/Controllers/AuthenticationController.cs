@@ -9,11 +9,11 @@ namespace Web.Controllers
     public class AuthenticationController : ControllerBase
     {
 
-        private readonly IAuthenticationService _customAuthenticationService;
+        private readonly IAuthenticationService _authenticationService;
 
         public AuthenticationController(IAuthenticationService authenticationService)
         {
-            _customAuthenticationService = authenticationService;
+            _authenticationService = authenticationService;
         }
 
         [HttpPost("authenticate")]
@@ -22,7 +22,7 @@ namespace Web.Controllers
             try
             {
                 // Intenta autenticar y generar el token
-                string token = _customAuthenticationService.Authenticate(authenticationRequest);
+                string token = _authenticationService.Authenticate(authenticationRequest);
                 return Ok(token);
             }
             catch (UnauthorizedAccessException ex) // Captura la excepción de autenticación fallida
