@@ -1,11 +1,11 @@
-import './App.css'
+import { BrowserRouter } from 'react-router-dom'
+import Routes from './routes/Routes'
 
 const App = () => {
-
   return (
-    <>
-      <h1>Hola! Dale que se arranca ese ServiTurnos2.0</h1>
-    </>
+    <BrowserRouter>
+      <Routes />
+    </BrowserRouter>
   )
 }
 
