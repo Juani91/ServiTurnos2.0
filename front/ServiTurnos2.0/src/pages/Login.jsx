@@ -60,7 +60,7 @@ const Login = () => {
             Iniciar sesión
           </Button>
 
-          <div style={{ marginTop: '16px', textAlign: 'center' }}>
+          <div style={{ marginTop: '2vh', textAlign: 'center' }}>
             <span>¿No tenés cuenta? </span>
             <Link to="/register">Registrarse</Link>
           </div>
