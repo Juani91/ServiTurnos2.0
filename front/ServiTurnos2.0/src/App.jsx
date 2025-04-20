@@ -1,10 +1,13 @@
-import { BrowserRouter } from 'react-router-dom'
 import Routes from './routes/Routes'
+import { BrowserRouter } from 'react-router-dom'
+import ToastProvider from './context/ToastProvider'
 
 const App = () => {
   return (
     <BrowserRouter>
-      <Routes />
+      <ToastProvider>
+        <Routes />
+      </ToastProvider>
     </BrowserRouter>
   )
 }

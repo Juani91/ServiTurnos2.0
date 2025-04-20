@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useToast } from '../context/ToastContext'
 import { Form, Container } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import Input from '../components/ui/Input'
@@ -7,6 +9,10 @@ import Button from '../components/ui/Button'
 const Register = () => {
 
     const [userType, setUserType] = useState('Customer')
+
+    const { showToast } = useToast()
+
+    const navigate = useNavigate()
 
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
@@ -23,7 +29,19 @@ const Register = () => {
             password
         }
 
+        // ver esto
+        setFirstName("")
+        setLastName("")
+        setEmail("")
+        setPassword("")
+
         console.log(`${userType}Request:`, payload)
+
+        showToast('¡Usuario registrado con éxito!', 'success')
+
+        setTimeout(() => {
+            navigate('/')
+          }, 750)
 
         // Más adelante: hacer el POST al endpoint correspondiente
     }
@@ -84,7 +102,6 @@ const Register = () => {
                             <option value="Professional">Profesional</option>
                         </Form.Select>
                     </Form.Group>
-
 
                     <Button
                         type="submit"
