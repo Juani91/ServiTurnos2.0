@@ -57,7 +57,7 @@ namespace Infrastructure.ThirdServices
 
             if (user == null)
             {
-                throw new UnauthorizedAccessException("Credenciales incorrectas. Por favor, inténtelo de nuevo.");
+                throw new UnauthorizedAccessException("Credenciales incorrectas. Por favor, inténtelo nuevamente.");
             }
 
             var securityPassword = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_options.SecretForKey));

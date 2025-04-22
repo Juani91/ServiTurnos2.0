@@ -1,19 +1,42 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom' // 🆕 Importamos navigate para redirigir
 import { useState } from 'react'
-import { Form } from 'react-bootstrap'
-import { Container } from 'react-bootstrap'
+import { Form, Container } from 'react-bootstrap'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
+import { useAuth } from '../services/authentication/AuthContext' // 🆕 Importamos el hook de autenticación
+import { useToast } from '../context/toastContext/ToastContext' // 🆕 Importamos el hook del Toast
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const handleSubmit = (e) => {
+  const { login } = useAuth() // 🆕 Obtenemos la función login
+  const { showToast } = useToast() // 🆕 Obtenemos la función showToast
+  const navigate = useNavigate() // 🆕 Para redireccionar luego del login
+
+  const parseJwt = (token) => {
+    try {
+      return JSON.parse(atob(token.split('.')[1]))
+    } catch (e) {
+      return null
+    }
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Email:', email)
-    console.log('Password:', password)
-    // Aquí después llamaremos a la API
+
+    const result = await login(email, password) // 🆕 Llamamos a login del contexto
+
+    if (!result.success) {
+      showToast(result.msg, 'error') // 🆕 Si falla, mostramos el mensaje que vino del back
+      return
+    }
+
+    const decoded = parseJwt(result.token) // 🆕 Decodificamos el token JWT
+    const userType = decoded?.UserType
+
+    // 🆕 Redirigimos a home
+    navigate('/home')
   }
 
   return (
@@ -64,7 +87,6 @@ const Login = () => {
             <span>¿No tenés cuenta? </span>
             <Link to="/register">Registrarse</Link>
           </div>
-
         </Form>
       </Container>
     </div>

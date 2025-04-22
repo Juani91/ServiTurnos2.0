@@ -76,14 +76,14 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IProfessionalService, ProfessionalService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 
-// PARA ASEGURAR UNA CORRECTA CONEXIÓN CON EL FRONT - VER DESPUÉS
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowAll",
-//        builder => builder.AllowAnyOrigin()
-//                          .AllowAnyMethod()
-//                          .AllowAnyHeader());
-//});
+//PARA ASEGURAR UNA CORRECTA CONEXIÓN CON EL FRONT - VER DESPUÉS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+       builder => builder.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader());
+});
 
 // POLIZAS PARA AUTORIZACIONES
 builder.Services.AddAuthorization(options =>
@@ -122,6 +122,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 

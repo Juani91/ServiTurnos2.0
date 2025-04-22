@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useToast } from '../context/ToastContext'
+import { useToast } from '../context/toastContext/ToastContext'
 import { Form, Container } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import Input from '../components/ui/Input'

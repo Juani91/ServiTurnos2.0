@@ -1,6 +1,7 @@
+import ToastProvider from './context/toastContext/ToastProvider'
 import Routes from './routes/Routes'
 import { BrowserRouter } from 'react-router-dom'
-import ToastProvider from './context/ToastProvider'
+
 
 const App = () => {
   return (
