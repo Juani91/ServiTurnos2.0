@@ -1,0 +1,27 @@
+.header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ccc;
+  width: 100%;
+}
+
+.header-container {
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-space {
+  width: 100px;
+}
+
+.header-title {
+  margin-bottom: 0.5vh;
+  text-align: center;
+  flex-grow: 1;
+}
+
+.header-logout {
+  width: 100px;
+}

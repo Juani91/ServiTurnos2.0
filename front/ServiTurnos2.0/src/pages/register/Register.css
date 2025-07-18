@@ -1,0 +1,39 @@
+.register-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #b8b3ac;
+}
+
+.register-container {
+  max-width: 400px;
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+}
+
+.register-title {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.register-role-group {
+  margin-bottom: 1rem;
+}
+
+.register-role-label {
+  font-weight: bold;
+}
+
+.register-btn {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.register-login-link {
+  margin-top: 16px;
+  text-align: center;
+  display: block;
+}

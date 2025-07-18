@@ -1,4 +1,5 @@
-import { useAuth } from '../services/authentication/AuthContext'
+import { useAuth } from '../../services/authentication/AuthContext'
+import './Home.css'
 
 // Función para decodificar el token
 const parseJwt = (token) => {
@@ -15,17 +16,9 @@ const Home = () => {
   const userType = decoded?.UserType
 
   return (
-    <main
-      style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
+    <main className="home-serviturnos">
       <h2>Hola {userType}</h2>
     </main>
-
   )
 }
 

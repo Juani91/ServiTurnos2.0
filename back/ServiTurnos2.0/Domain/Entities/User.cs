@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Domain.Entities
 {
     public abstract class User
     {
@@ -7,8 +9,8 @@
         public string? Password { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? City { get; set; }
+
+        [Column(TypeName = "TEXT")]
         public string? ImageURL { get; set; }
     }
 }

@@ -1,0 +1,51 @@
+/* .search-professionals {
+  align-self: flex-start;
+  width: 100%;
+} */
+
+.search-input-margin {
+  margin-top: 1rem;
+}
+
+.search-professionals .card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+.search-professionals .card-img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 100px;
+  margin-right: 24px;
+}
+
+.search-professionals .card-body {
+  padding: 0;
+}
+
+.search-professionals .card-title {
+  font-size: 1.3rem;
+  margin-bottom: 0.7rem;
+}
+
+.search-professionals .card-text {
+  margin-bottom: 1rem;
+}
+
+.search-professionals .btn-success {
+  border-radius: 8px;
+  padding: 8px 24px;
+}
+
+.card-btn-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  width: 100%;
+}
+

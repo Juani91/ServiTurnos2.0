@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import Toast from '../../components/ui/Toast'
+import Toast from '../../components/toast/Toast'
 import { ToastContext } from './ToastContext'
 
 const ToastProvider = ({ children }) => {

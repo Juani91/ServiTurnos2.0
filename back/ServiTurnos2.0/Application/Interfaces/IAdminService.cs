@@ -9,5 +9,6 @@ namespace Application.Interfaces
         void DeleteAdmin(int id);
         void UpdateAdmin(int id, AdminRequest request);
         List<AdminResponse> GetAllAdmins();
+        AdminResponse GetAdminById(int id);
     }
 }

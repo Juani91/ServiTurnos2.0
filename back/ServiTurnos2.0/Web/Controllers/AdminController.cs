@@ -100,5 +100,27 @@ namespace Web.Controllers
                 return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
             }
         }
+
+        [HttpGet("{id}")]
+        public IActionResult GetAdminById(int id)
+        {
+            try
+            {
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                if (userIdFromToken != id)
+                    return StatusCode(403, "No tenés permiso para ver otro administrador.");
+
+                var admin = _adminService.GetAdminById(id);
+                return Ok(admin);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
+            }
+        }
     }
 }

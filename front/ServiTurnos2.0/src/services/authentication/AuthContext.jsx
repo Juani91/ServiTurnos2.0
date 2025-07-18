@@ -5,48 +5,48 @@ const AuthContext = createContext();
 const tokenStorage = localStorage.getItem("token");
 
 export const AuthProvider = ({ children }) => {
+
   const [token, setToken] = useState(tokenStorage);
 
-  const login = async (email, password) => {
+  const Login = async (email, password) => {
     const requestData = { email, password };
 
     try {
       const response = await fetch("https://localhost:7286/api/Authentication/authenticate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       });
 
+      const text = await response.text(); // ✅ Leemos el texto una sola vez
+
       if (!response.ok) {
-        const errorMsg = await response.text(); // ← Aquí leemos el mensaje real
-        return { success: false, msg: errorMsg };
+        return { success: false, msg: text }; // 🛑 Mensaje de error del backend
       }
 
-      const token = await response.text(); // ← Esto es el token en texto plano
-      setToken(token);
-      localStorage.setItem("token", token);
+      // ✅ Si el login fue exitoso, guardamos el token
+      setToken(text);
+      localStorage.setItem("token", text);
 
-      return { success: true, token }; // devolvemos también el token si querés usarlo
+      return { success: true, token: text };
+
     } catch (error) {
-      console.error("Error al iniciar sesión:", error.message);
-      return {
-        success: false,
-        msg: "Error de conexión con el servidor.",
-      };
+      return { success: false, msg: "Error de conexión con el servidor." };
     }
   };
 
-  const logout = () => {
+  const Logout = () => {
     setToken(null);
     localStorage.removeItem("token");
   };
 
-  const data = { token, login, logout };
+  const data = {
+    token,
+    Login,
+    Logout
+  };
 
   return <AuthContext.Provider value={data}>{children}</AuthContext.Provider>;
 };
 
-// Hook personalizado para usar en cualquier lado
 export const useAuth = () => useContext(AuthContext);

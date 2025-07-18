@@ -10,10 +10,17 @@ namespace Application.Services
     public class CustomerService : ICustomerService
     {
         private readonly IRepositoryBase<Customer> _customerRepository;
+        private readonly IRepositoryBase<Professional> _professionalRepository;
+        private readonly IRepositoryBase<Admin> _adminRepository;
 
-        public CustomerService(IRepositoryBase<Customer> customerRepository)
+        public CustomerService(
+            IRepositoryBase<Customer> customerRepository,
+            IRepositoryBase<Professional> professionalRepository,
+            IRepositoryBase<Admin> adminRepository)
         {
             _customerRepository = customerRepository;
+            _professionalRepository = professionalRepository;
+            _adminRepository = adminRepository;
         }
 
         public void CreateCustomer(CustomerRequest request)
@@ -23,9 +30,12 @@ namespace Application.Services
                 throw new ArgumentException("El email y la contraseña son obligatorios.");
             }
 
-            var existingUser = _customerRepository.GetByEmail(request.Email);
+            bool emailExists =
+                _customerRepository.GetByEmail(request.Email) != null ||
+                _professionalRepository.GetByEmail(request.Email) != null ||
+                _adminRepository.GetByEmail(request.Email) != null;
 
-            if (existingUser != null)
+            if (emailExists)
             {
                 throw new ArgumentException("El email ya está registrado.");
             }
@@ -69,6 +79,16 @@ namespace Application.Services
             }
 
             return CustomerMapping.ToCustomerResponseList(customers);
+        }
+
+        public CustomerResponse GetCustomerById(int id)
+        {
+            var customer = _customerRepository.GetById(id);
+
+            if (customer == null)
+                throw new KeyNotFoundException($"No se encontró un cliente con ID {id}");
+
+            return CustomerMapping.ToCustomerResponse(customer);
         }
     }
 }

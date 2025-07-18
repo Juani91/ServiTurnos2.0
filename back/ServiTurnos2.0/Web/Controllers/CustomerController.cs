@@ -104,5 +104,30 @@ namespace Web.Controllers
                 return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
             }
         }
+
+        [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrCustomer")]
+        public IActionResult GetCustomerById([FromRoute] int id)
+        {
+            try
+            {
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                var userType = User.FindFirst("UserType")?.Value;
+
+                if (userType != "Admin" && userIdFromToken != id)
+                    return StatusCode(403, "No tenés permiso para ver este perfil.");
+
+                var customer = _customerService.GetCustomerById(id);
+                return Ok(customer);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
+            }
+        }
     }
 }

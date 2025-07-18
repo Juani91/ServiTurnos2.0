@@ -2,6 +2,9 @@
 {
     public class Customer : User
     {
-        // agregar meetings
+        public string? PhoneNumber { get; set; }
+        public string? City { get; set; }
+
+        // Agregar reuniones
     }
 }

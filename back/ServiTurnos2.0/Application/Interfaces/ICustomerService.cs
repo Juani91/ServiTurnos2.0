@@ -9,5 +9,6 @@ namespace Application.Interfaces
         void DeleteCustomer(int id);
         void UpdateCustomer(int id, CustomerRequest request);
         List<CustomerResponse> GetAllCustomers();
+        CustomerResponse GetCustomerById(int id);
     }
 }

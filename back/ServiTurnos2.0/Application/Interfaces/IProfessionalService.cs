@@ -9,5 +9,6 @@ namespace Application.Interfaces
         void DeleteProfessional(int id);
         void UpdateProfessional(int id, ProfessionalRequest request);
         List<ProfessionalResponse> GetAllProfessionals();
+        ProfessionalResponse GetProfessionalById(int id);
     }
 }

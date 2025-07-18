@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import './Toast.css'
 
 const toastColors = {
   success: '#198754',
@@ -22,7 +23,7 @@ const Toast = ({ message, type = 'info', onClose, duration = 3000 }) => {
   }, [duration, onClose])
 
   return (
-    <div style={{
+    <div className={`toast-serviturnos toast-${type} ${visible ? 'toast-visible' : ''}`} style={{
       position: 'fixed',
       bottom: '20px',
       right: '20px',

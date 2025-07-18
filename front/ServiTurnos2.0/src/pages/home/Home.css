@@ -1,0 +1,7 @@
+.home-serviturnos {
+  flex: 7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #b8b3ac;
+}

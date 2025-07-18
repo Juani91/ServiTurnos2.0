@@ -9,11 +9,18 @@ namespace Application.Services
 {
     public class ProfessionalService : IProfessionalService
     {
+        private readonly IRepositoryBase<Customer> _customerRepository;
         private readonly IRepositoryBase<Professional> _professionalRepository;
+        private readonly IRepositoryBase<Admin> _adminRepository;
 
-        public ProfessionalService(IRepositoryBase<Professional> professionalRepository)
+        public ProfessionalService(
+            IRepositoryBase<Customer> customerRepository,
+            IRepositoryBase<Professional> professionalRepository,
+            IRepositoryBase<Admin> adminRepository)
         {
+            _customerRepository = customerRepository;
             _professionalRepository = professionalRepository;
+            _adminRepository = adminRepository;
         }
 
         public void CreateProfessional(ProfessionalRequest request)
@@ -23,9 +30,12 @@ namespace Application.Services
                 throw new ArgumentException("El email y la contraseña son obligatorios.");
             }
 
-            var existingUser = _professionalRepository.GetByEmail(request.Email);
+            bool emailExists =
+                _customerRepository.GetByEmail(request.Email) != null ||
+                _professionalRepository.GetByEmail(request.Email) != null ||
+                _adminRepository.GetByEmail(request.Email) != null;
 
-            if (existingUser != null)
+            if (emailExists)
             {
                 throw new ArgumentException("El email ya está registrado.");
             }
@@ -69,6 +79,16 @@ namespace Application.Services
             }
 
             return ProfessionalMapping.ToProfessionalResponseList(professionals);
+        }
+
+        public ProfessionalResponse GetProfessionalById(int id)
+        {
+            var professional = _professionalRepository.GetById(id);
+
+            if (professional == null)
+                throw new KeyNotFoundException($"El profesional con ID {id} no fue encontrado.");
+
+            return ProfessionalMapping.ToProfessionalResponse(professional);
         }
     }
 }
