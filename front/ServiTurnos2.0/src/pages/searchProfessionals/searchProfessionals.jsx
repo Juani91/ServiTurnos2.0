@@ -149,7 +149,7 @@ const SearchProfessionals = () => {
       <Row>
         {filtered.length === 0 ? (
           <Col>
-            <p>No se encontraron profesionales.</p>
+            <p className="text-center">No se encontraron profesionales.</p>
           </Col>
         ) : (
           filtered.map(prof => (

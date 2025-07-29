@@ -232,6 +232,28 @@ export const UsersProvider = ({ children }) => {
     }
   };
 
+  const GetAllCustomers = async (token) => {
+    try {
+      const response = await fetch('https://localhost:7286/api/Customer', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        }
+      });
+
+      if (!response.ok) {
+        const msg = await response.text();
+        return { success: false, msg };
+      }
+
+      const data = await response.json();
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, msg: 'Error de conexión con el servidor.' };
+    }
+  };
+
   const data = {
     RegisterCustomer,
     RegisterProfessional,
@@ -241,7 +263,8 @@ export const UsersProvider = ({ children }) => {
     UpdateAdmin,
     UpdateCustomer,
     UpdateProfessional,
-    GetAllProfessionals
+    GetAllProfessionals,
+    GetAllCustomers
   };
 
 

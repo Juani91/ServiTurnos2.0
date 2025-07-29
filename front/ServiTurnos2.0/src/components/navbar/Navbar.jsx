@@ -1,10 +1,11 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../services/authentication/AuthContext';
 import { Nav } from 'react-bootstrap';
 import './Navbar.css';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { token } = useAuth();
 
   const parseJwt = (token) => {
@@ -17,6 +18,9 @@ const Navbar = () => {
 
   const decoded = token ? parseJwt(token) : null;
   const userType = decoded?.UserType;
+
+  // Función para determinar si un botón está activo
+  const isActive = (path) => location.pathname === path;
 
   return (
 
@@ -32,7 +36,7 @@ const Navbar = () => {
               // else if (userType === 'Professional') navigate('/profile');
               navigate('/profile');
             }}
-            className="buttons"
+            className={`buttons ${isActive('/profile') ? 'active' : ''}`}
           >
             Perfil
           </Nav.Link>
@@ -45,7 +49,12 @@ const Navbar = () => {
               else if (userType === 'Professional') navigate('/solicitudes');
               else if (userType === 'Admin') navigate('/ver-usuarios');
             }}
-            className="buttons"
+            className={`buttons ${
+              (userType === 'Customer' && isActive('/buscar')) ||
+              (userType === 'Professional' && isActive('/solicitudes')) ||
+              (userType === 'Admin' && isActive('/ver-usuarios'))
+                ? 'active' : ''
+            }`}
           >
             {userType === 'Customer' && 'Buscar Profesionales'}
             {userType === 'Professional' && 'Solicitudes'}
@@ -59,7 +68,11 @@ const Navbar = () => {
               if (userType === 'Professional' || userType === 'Customer') navigate('/citas');
               else if (userType === 'Admin') navigate('/ver-citas');
             }}
-            className="buttons"
+            className={`buttons ${
+              ((userType === 'Professional' || userType === 'Customer') && isActive('/citas')) ||
+              (userType === 'Admin' && isActive('/ver-citas'))
+                ? 'active' : ''
+            }`}
           >
             {(userType === 'Professional' || userType === 'Customer') && 'Citas'}
             {userType === 'Admin' && 'Ver citas'}

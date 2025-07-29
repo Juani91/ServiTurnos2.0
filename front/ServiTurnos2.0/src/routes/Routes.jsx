@@ -5,6 +5,7 @@ import Home from '../pages/home/Home'
 import Layout from '../components/layout/Layout' // 🆕 importamos el layout
 import Profile from '../pages/profile/Profile'
 import SearchProfessionals from '../pages/searchProfessionals/searchProfessionals'
+import SearchCustProfess from '../pages/searchCustProfess/SearchCustProfess'
 
 const Routes = () => {
   return (
@@ -21,8 +22,9 @@ const Routes = () => {
         <Route path="/home" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/buscar" element={<SearchProfessionals />} />
+        <Route path="/ver-usuarios" element={<SearchCustProfess />} />
 
-        {/* Después sumamos acá: /perfil, /solicitudes, etc. */}
+        {/* Después sumamos acá: /solicitudes, /citas, /ver-citas, etc. */}
 
       </Route>
 

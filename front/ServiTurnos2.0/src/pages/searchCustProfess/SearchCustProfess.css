@@ -1,0 +1,76 @@
+.search-cust-profess {
+  align-self: flex-start;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.search-cust-profess .card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+.search-cust-profess .card-img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 100px;
+  margin-right: 24px;
+}
+
+.search-cust-profess .card-body {
+  padding: 0;
+}
+
+.search-cust-profess .card-title {
+  font-size: 1.3rem;
+  margin-bottom: 0.7rem;
+}
+
+.search-cust-profess .card-text {
+  margin-bottom: 1rem;
+}
+
+.search-cust-profess .btn-modify {
+  border-radius: 8px;
+  padding: 8px 24px;
+}
+
+.search-cust-profess .btn-delete {
+  border-radius: 8px;
+  padding: 8px 24px;
+}
+
+.card-btn-container {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 8px;
+}
+
+.user-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.invisible-field {
+  color: transparent;
+  user-select: none;
+  pointer-events: none;
+}
+
+.card-professional {
+  background-color: #afc5d4 !important; /* Azul pastel */
+}
+
+.card-customer {
+  background-color: #bbdebb !important; /* Verde pastel */
+}
