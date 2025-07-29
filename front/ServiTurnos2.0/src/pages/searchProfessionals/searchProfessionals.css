@@ -1,9 +1,8 @@
-/* .search-professionals {
+
+
+.search-professionals {
   align-self: flex-start;
   width: 100%;
-} */
-
-.search-input-margin {
   margin-top: 1rem;
 }
 
@@ -45,7 +44,6 @@
 .card-btn-container {
   display: flex;
   justify-content: flex-end;
-  align-items: flex-end;
   width: 100%;
 }
 
