@@ -6,6 +6,7 @@ import { useUsers } from '../../services/usersContext/UsersContext'
 import { useAuth } from '../../services/authentication/AuthContext'
 import { useToast } from '../../context/toastContext/ToastContext'
 import './SearchCustProfess.css'
+import '../../components/navbar/Navbar.css'
 
 const professionMap = {
   0: "Gasista",
@@ -25,8 +26,8 @@ const SearchCustProfess = () => {
   const [showModal, setShowModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
   const [editForm, setEditForm] = useState({})
-  
-  const { GetAllCustomers, GetAllProfessionals, UpdateCustomer, UpdateProfessional } = useUsers()
+  const [activeTab, setActiveTab] = useState('active') // 'active' o 'blocked'
+  const { GetAllCustomers, GetAllProfessionals, UpdateCustomer, UpdateProfessional, SoftDeleteCustomer, SoftDeleteProfessional } = useUsers()
   const { token } = useAuth()
   const { showToast } = useToast()
 
@@ -56,29 +57,56 @@ const SearchCustProfess = () => {
         setCustomers(customersRes.data)
         setProfessionals(professionalsRes.data)
         setAllUsers(combinedUsers)
-        setFiltered(combinedUsers)
+        
+        // Filtrar según la pestaña activa
+        filterUsersByStatus(combinedUsers, activeTab)
       }
     }
     fetchData()
   }, [GetAllCustomers, GetAllProfessionals, token])
+
+  useEffect(() => {
+    if (allUsers.length > 0) {
+      filterUsersByStatus(allUsers, activeTab)
+    }
+  }, [activeTab, allUsers])
 
   const handleInputChange = (e) => {
     const value = e.target.value
     setQuery(value)
     
     if (!value.trim()) {
-      setFiltered(allUsers)
+      filterUsersByStatus(allUsers, activeTab)
       return
     }
 
     const q = value.toLowerCase()
     
-    // Filtrar todos los usuarios solo por nombre
-    const results = allUsers.filter(user =>
+    // Filtrar por estado (bloqueado/activo) y luego por nombre
+    const usersByStatus = allUsers.filter(user => {
+      const isBlocked = user.isDeleted || user.available === 0 || user.available === false
+      return activeTab === 'active' ? !isBlocked : isBlocked
+    })
+    
+    const results = usersByStatus.filter(user =>
       user.firstName?.toLowerCase().includes(q) ||
       user.lastName?.toLowerCase().includes(q)
     )
     setFiltered(results)
+  }
+
+  const filterUsersByStatus = (users, status) => {
+    const filteredUsers = users.filter(user => {
+      const isBlocked = user.isDeleted || user.available === 0 || user.available === false
+      return status === 'active' ? !isBlocked : isBlocked
+    })
+    setFiltered(filteredUsers)
+  }
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    setQuery('') // Limpiar búsqueda al cambiar de pestaña
+    filterUsersByStatus(allUsers, tab)
   }
 
   const handleModify = (user) => {
@@ -176,7 +204,9 @@ const SearchCustProfess = () => {
       setCustomers(customersRes.data)
       setProfessionals(professionalsRes.data)
       setAllUsers(combinedUsers)
-      setFiltered(combinedUsers)
+      
+      // Filtrar según la pestaña activa
+      filterUsersByStatus(combinedUsers, activeTab)
     }
   }
 
@@ -187,13 +217,52 @@ const SearchCustProfess = () => {
     }))
   }
 
-  const handleDelete = (user) => {
-    console.log(`Eliminar ${user.userType}:`, user)
-    // Aquí implementarás la lógica de eliminar
+  const handleDelete = async (user) => {
+    try {
+      let result
+      
+      if (user.userType === 'professional') {
+        result = await SoftDeleteProfessional(user.id, token)
+      } else {
+        result = await SoftDeleteCustomer(user.id, token)
+      }
+
+      if (result.success) {
+        showToast(`${user.userType === 'professional' ? 'Profesional' : 'Cliente'} bloqueado exitosamente!`, 'success')
+        // Recargar los datos para mostrar los cambios
+        await fetchData()
+      } else {
+        showToast(result.msg || 'Error al bloquear usuario', 'error')
+      }
+    } catch (error) {
+      showToast('Error de conexión con el servidor', 'error')
+    }
   }
 
   return (
     <Container className="search-cust-profess">
+      {/* Pestañas para cambiar entre usuarios activos y bloqueados */}
+      <Row className="justify-content-center mb-3">
+        <Col md={8}>
+          <div className="d-flex gap-2">
+            <div 
+              className={`buttons ${activeTab === 'active' ? 'active' : ''}`}
+              onClick={() => handleTabChange('active')}
+              style={{ flex: 1, cursor: 'pointer' }}
+            >
+              Usuarios Activos ({allUsers.filter(u => !u.isDeleted && u.available !== 0 && u.available !== false).length})
+            </div>
+            <div 
+              className={`buttons ${activeTab === 'blocked' ? 'active' : ''}`}
+              onClick={() => handleTabChange('blocked')}
+              style={{ flex: 1, cursor: 'pointer' }}
+            >
+              Usuarios Bloqueados ({allUsers.filter(u => u.isDeleted || u.available === 0 || u.available === false).length})
+            </div>
+          </div>
+        </Col>
+      </Row>
+
       <Row className="justify-content-center">
         <Col md={6}>
           <Input
@@ -259,7 +328,7 @@ const SearchCustProfess = () => {
                       className="btn-delete"
                       onClick={() => handleDelete(user)}
                     >
-                      Eliminar
+                      {activeTab === 'active' ? 'Bloquear' : 'Desbloquear'}
                     </Button>
                   </div>
                 </Card.Body>

@@ -254,6 +254,116 @@ export const UsersProvider = ({ children }) => {
     }
   };
 
+  const SoftDeleteCustomer = async (id, token) => {
+    try {
+      const response = await fetch(`https://localhost:7286/api/Customer/soft/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        }
+      });
+
+      if (!response.ok) {
+        const msg = await response.text();
+        return { success: false, msg };
+      }
+
+      const text = await response.text();
+      return { success: true, msg: text };
+    } catch (error) {
+      return { success: false, msg: 'Error de conexión con el servidor.' };
+    }
+  };
+
+  const SoftDeleteProfessional = async (id, token) => {
+    try {
+      const response = await fetch(`https://localhost:7286/api/Professional/soft/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        }
+      });
+
+      if (!response.ok) {
+        const msg = await response.text();
+        return { success: false, msg };
+      }
+
+      const text = await response.text();
+      return { success: true, msg: text };
+    } catch (error) {
+      return { success: false, msg: 'Error de conexión con el servidor.' };
+    }
+  };
+
+  const HardDeleteCustomer = async (id, token) => {
+    try {
+      const response = await fetch(`https://localhost:7286/api/Customer/hard/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        }
+      });
+
+      if (!response.ok) {
+        const msg = await response.text();
+        return { success: false, msg };
+      }
+
+      const text = await response.text();
+      return { success: true, msg: text };
+    } catch (error) {
+      return { success: false, msg: 'Error de conexión con el servidor.' };
+    }
+  };
+
+  const HardDeleteProfessional = async (id, token) => {
+    try {
+      const response = await fetch(`https://localhost:7286/api/Professional/hard/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        }
+      });
+
+      if (!response.ok) {
+        const msg = await response.text();
+        return { success: false, msg };
+      }
+
+      const text = await response.text();
+      return { success: true, msg: text };
+    } catch (error) {
+      return { success: false, msg: 'Error de conexión con el servidor.' };
+    }
+  };
+
+  const HardDeleteAdmin = async (id, token) => {
+    try {
+      const response = await fetch(`https://localhost:7286/api/Admin/hard/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        }
+      });
+
+      if (!response.ok) {
+        const msg = await response.text();
+        return { success: false, msg };
+      }
+
+      const text = await response.text();
+      return { success: true, msg: text };
+    } catch (error) {
+      return { success: false, msg: 'Error de conexión con el servidor.' };
+    }
+  };
+
   const data = {
     RegisterCustomer,
     RegisterProfessional,
@@ -264,7 +374,12 @@ export const UsersProvider = ({ children }) => {
     UpdateCustomer,
     UpdateProfessional,
     GetAllProfessionals,
-    GetAllCustomers
+    GetAllCustomers,
+    SoftDeleteCustomer,
+    SoftDeleteProfessional,
+    HardDeleteCustomer,
+    HardDeleteProfessional,
+    HardDeleteAdmin
   };
 
 

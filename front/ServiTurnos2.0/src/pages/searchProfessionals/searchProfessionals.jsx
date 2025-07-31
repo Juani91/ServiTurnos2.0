@@ -60,10 +60,15 @@ const SearchProfessionals = () => {
     const fetchProfessionals = async () => {
       const res = await GetAllProfessionals(token)
       if (res.success) {
-        // Filtrar solo profesionales con perfil completo
-        const completeProfessionals = res.data.filter(isProfessionalComplete)
-        setProfessionals(completeProfessionals)
-        setFiltered(completeProfessionals)
+        // Filtrar solo profesionales con perfil completo y que no estén bloqueados
+        const activeProfessionals = res.data.filter(prof => 
+          isProfessionalComplete(prof) && 
+          !prof.isDeleted && 
+          prof.available !== 0 && 
+          prof.available !== false
+        )
+        setProfessionals(activeProfessionals)
+        setFiltered(activeProfessionals)
       }
     }
     fetchProfessionals()
@@ -154,7 +159,7 @@ const SearchProfessionals = () => {
         ) : (
           filtered.map(prof => (
             <Col md={6} key={prof.id} className="mb-4">
-              <Card className="card">
+              <Card className="card card-professional">
                 <Card.Img
                   variant="left"
                   src={prof.imageURL || '/images/NoImage.webp'}

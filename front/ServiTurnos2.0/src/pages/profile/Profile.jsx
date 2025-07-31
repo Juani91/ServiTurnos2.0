@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from "../../services/authentication/AuthContext"
 import { Form, Container, Row, Col, Modal } from 'react-bootstrap'
 import Input from '../../components/ui/Input'
@@ -15,7 +16,8 @@ const parseJwt = (token) => {
 }
 
 const Profile = () => {
-  const { token } = useAuth()
+  const navigate = useNavigate()
+  const { token, Logout } = useAuth()
   const decoded = token ? parseJwt(token) : null
   const userType = decoded?.UserType
   const userId = decoded?.Id
@@ -66,9 +68,33 @@ const Profile = () => {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     setShowModal(false)
-    showToast('Cuenta eliminada (simulado)', 'info')
+    
+    try {
+      let result
+      
+      if (userType === 'Admin') {
+        result = await HardDeleteAdmin(userId, token)
+      } else if (userType === 'Customer') {
+        result = await HardDeleteCustomer(userId, token)
+      } else if (userType === 'Professional') {
+        result = await HardDeleteProfessional(userId, token)
+      }
+
+      if (result?.success) {
+        showToast('Cuenta eliminada exitosamente', 'success')
+        // Cerrar sesión y redirigir al login después de un breve delay
+        setTimeout(() => {
+          Logout()
+          navigate('/')
+        }, 1500)
+      } else {
+        showToast(`Error al eliminar la cuenta: ${result?.msg}`, 'error')
+      }
+    } catch (error) {
+      showToast('Error de conexión con el servidor', 'error')
+    }
   }
 
   useEffect(() => {
@@ -101,7 +127,7 @@ const Profile = () => {
     fetchProfile()
   }, [token, userType, userId])
 
-  const { UpdateAdmin, UpdateCustomer, UpdateProfessional } = useUsers();
+  const { UpdateAdmin, UpdateCustomer, UpdateProfessional, HardDeleteAdmin, HardDeleteCustomer, HardDeleteProfessional } = useUsers();
 
   const handleSave = async () => {
     if (JSON.stringify(formData) === JSON.stringify(originalData)) {
