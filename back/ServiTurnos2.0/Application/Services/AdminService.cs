@@ -44,7 +44,7 @@ namespace Application.Services
             _adminRepository.Add(admin);
         }
 
-        public void DeleteAdmin(int id)
+        public void HardDeleteAdmin(int id)
         {
             var admin = _adminRepository.GetById(id);
 
@@ -53,7 +53,22 @@ namespace Application.Services
                 throw new KeyNotFoundException($"El administrador con ID {id} no fue encontrado.");
             }
 
-            _adminRepository.Delete(admin);
+            _adminRepository.HardDelete(admin);
+        }
+
+        public bool SoftDeleteAdmin(int id)
+        {
+            var admin = _adminRepository.GetById(id);
+
+            if (admin == null)
+            {
+                throw new KeyNotFoundException($"El administrador con ID {id} no fue encontrado.");
+            }
+
+            bool wasAvailable = admin.Available; // Guardamos el estado anterior
+            _adminRepository.SoftDelete(admin);
+            
+            return wasAvailable; // Retornamos true si estaba disponible (ahora bloqueado), false si estaba bloqueado (ahora desbloqueado)
         }
 
         public void UpdateAdmin(int id, AdminRequest request)

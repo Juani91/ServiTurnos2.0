@@ -6,7 +6,8 @@ namespace Application.Interfaces
     public interface IAdminService
     {
         void CreateAdmin(AdminRequest request);
-        void DeleteAdmin(int id);
+        void HardDeleteAdmin(int id);
+        bool SoftDeleteAdmin(int id);
         void UpdateAdmin(int id, AdminRequest request);
         List<AdminResponse> GetAllAdmins();
         AdminResponse GetAdminById(int id);

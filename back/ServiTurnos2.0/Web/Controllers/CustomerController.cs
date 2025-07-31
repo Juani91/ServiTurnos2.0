@@ -34,9 +34,9 @@ namespace Web.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("hard/{id}")]
         [Authorize(Policy = "AdminOrCustomer")]
-        public IActionResult DeleteCustomer([FromRoute] int id)
+        public IActionResult HardDeleteCustomer([FromRoute] int id)
         {
             try
             {
@@ -45,10 +45,34 @@ namespace Web.Controllers
                 var userType = User.FindFirst("UserType")?.Value;
 
                 if (userType != "Admin" && userIdFromToken != id)
-                    return StatusCode(403, "No tenés permiso para eliminar este perfil.");
+                    return StatusCode(403, "No tienes permiso para borrar a este perfil.");
 
-                _customerService.DeleteCustomer(id);
-                return Ok("Cliente eliminado correctamente.");
+                _customerService.HardDeleteCustomer(id);
+                return Ok("Cliente eliminado permanentemente.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("soft/{id}")]
+        [Authorize(Policy = "AdminOnly")]
+        public IActionResult SoftDeleteCustomer([FromRoute] int id)
+        {
+            try
+            {
+                bool wasAvailable = _customerService.SoftDeleteCustomer(id);
+                
+                string message = wasAvailable 
+                    ? "Cliente bloqueado correctamente." 
+                    : "Cliente desbloqueado correctamente.";
+                    
+                return Ok(message);
             }
             catch (KeyNotFoundException ex)
             {

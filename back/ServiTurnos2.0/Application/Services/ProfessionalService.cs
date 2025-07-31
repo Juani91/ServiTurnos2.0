@@ -44,7 +44,7 @@ namespace Application.Services
             _professionalRepository.Add(professional);
         }
 
-        public void DeleteProfessional(int id)
+        public void HardDeleteProfessional(int id)
         {
             var professional = _professionalRepository.GetById(id);
 
@@ -53,7 +53,22 @@ namespace Application.Services
                 throw new KeyNotFoundException($"El profesional con ID {id} no fue encontrado.");
             }
 
-            _professionalRepository.Delete(professional);
+            _professionalRepository.HardDelete(professional);
+        }
+
+        public bool SoftDeleteProfessional(int id)
+        {
+            var professional = _professionalRepository.GetById(id);
+
+            if (professional == null)
+            {
+                throw new KeyNotFoundException($"El profesional con ID {id} no fue encontrado.");
+            }
+
+            bool wasAvailable = professional.Available; // Guardamos el estado anterior
+            _professionalRepository.SoftDelete(professional);
+            
+            return wasAvailable; // Retornamos true si estaba disponible (ahora bloqueado), false si estaba bloqueado (ahora desbloqueado)
         }
 
         public void UpdateProfessional(int id, ProfessionalRequest request)

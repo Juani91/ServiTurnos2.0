@@ -11,6 +11,7 @@ namespace Application.Models.Response
         public string? PhoneNumber { get; set; }
         public string? City { get; set; }
         public string? ImageURL { get; set; }
+        public bool Available { get; set; }
 
         // Propio de Professional
         public Profession? Profession { get; set; }

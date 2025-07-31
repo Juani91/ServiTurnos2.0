@@ -20,6 +20,8 @@ namespace Application.Mappings
                 PhoneNumber = request.PhoneNumber,
                 City = request.City,
                 ImageURL = request.ImageURL
+
+                // Available se omite porque ya tiene valor por defecto true en User
             };
         }
 
@@ -33,7 +35,8 @@ namespace Application.Mappings
                 LastName = customer.LastName,
                 PhoneNumber = customer.PhoneNumber,
                 City = customer.City,
-                ImageURL = customer.ImageURL
+                ImageURL = customer.ImageURL,
+                Available = customer.Available
             };
         }
 
@@ -51,6 +54,8 @@ namespace Application.Mappings
             existingCustomer.PhoneNumber = request.PhoneNumber ?? existingCustomer.PhoneNumber;
             existingCustomer.City = request.City ?? existingCustomer.City;
             existingCustomer.ImageURL = request.ImageURL ?? existingCustomer.ImageURL;
+
+            // Available NO se actualiza aquí, solo mediante métodos específicos de SoftDelete/HardDelete
         }
     }
 }

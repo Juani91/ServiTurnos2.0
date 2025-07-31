@@ -35,8 +35,8 @@ namespace Web.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeleteAdmin([FromRoute] int id)
+        [HttpDelete("hard/{id}")]
+        public IActionResult HardDeleteAdmin([FromRoute] int id)
         {
             try
             {
@@ -44,10 +44,33 @@ namespace Web.Controllers
                 var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
 
                 if (userIdFromToken != id)
-                    return StatusCode(403, "No tenés permiso para eliminar a otro administrador.");
+                    return StatusCode(403, "No tienes permiso para eliminar a otro administrador.");
 
-                _adminService.DeleteAdmin(id);
-                return Ok("Administrador eliminado correctamente.");
+                _adminService.HardDeleteAdmin(id);
+                return Ok("Administrador eliminado permanentemente.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("soft/{id}")]
+        public IActionResult SoftDeleteAdmin([FromRoute] int id)
+        {
+            try
+            {
+                bool wasAvailable = _adminService.SoftDeleteAdmin(id);
+                
+                string message = wasAvailable 
+                    ? "Administrador bloqueado correctamente." 
+                    : "Administrador desbloqueado correctamente.";
+                    
+                return Ok(message);
             }
             catch (KeyNotFoundException ex)
             {

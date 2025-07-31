@@ -44,7 +44,7 @@ namespace Application.Services
             _customerRepository.Add(customer);
         }
 
-        public void DeleteCustomer(int id)
+        public void HardDeleteCustomer(int id)
         {
             var customer = _customerRepository.GetById(id);
 
@@ -53,7 +53,22 @@ namespace Application.Services
                 throw new KeyNotFoundException($"El cliente con ID {id} no fue encontrado.");
             }
 
-            _customerRepository.Delete(customer);
+            _customerRepository.HardDelete(customer);
+        }
+
+        public bool SoftDeleteCustomer(int id)
+        {
+            var customer = _customerRepository.GetById(id);
+
+            if (customer == null)
+            {
+                throw new KeyNotFoundException($"El cliente con ID {id} no fue encontrado.");
+            }
+
+            bool wasAvailable = customer.Available; // Guardamos el estado anterior
+            _customerRepository.SoftDelete(customer);
+            
+            return wasAvailable; // Retornamos true si estaba disponible (ahora bloqueado), false si estaba bloqueado (ahora desbloqueado)
         }
 
         public void UpdateCustomer(int id, CustomerRequest request)

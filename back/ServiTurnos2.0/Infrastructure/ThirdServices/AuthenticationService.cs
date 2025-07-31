@@ -33,6 +33,7 @@ namespace Infrastructure.ThirdServices
 
         private User? ValidateUser(AuthenticationRequest request)
         {
+            // Buscar usuario con credenciales correctas en cada repositorio
             var customer = _customerRepository.GetAll()
                 .FirstOrDefault(u => u.Email == request.Email && u.Password == request.Password);
             if (customer != null) 
@@ -58,6 +59,12 @@ namespace Infrastructure.ThirdServices
             if (user == null)
             {
                 throw new UnauthorizedAccessException("Credenciales incorrectas. Por favor, inténtelo nuevamente.");
+            }
+
+            // Validar que el usuario esté disponible (no bloqueado/baneado)
+            if (!user.Available)
+            {
+                throw new UnauthorizedAccessException("Su cuenta ha sido bloqueada. Contacte al administrador para más información.");
             }
 
             var securityPassword = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_options.SecretForKey));

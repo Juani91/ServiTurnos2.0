@@ -17,6 +17,7 @@ namespace Application.Mappings
                 PhoneNumber = request.PhoneNumber,
                 City = request.City,
                 ImageURL = request.ImageURL,
+                // Available se omite porque ya tiene valor por defecto true en User
 
                 // Propios de Professional
                 Profession = request.Profession,
@@ -36,6 +37,7 @@ namespace Application.Mappings
                 PhoneNumber = professional.PhoneNumber,
                 City = professional.City,
                 ImageURL = professional.ImageURL,
+                Available = professional.Available,
 
                 // Propios de Professional
                 Profession = professional.Profession,
@@ -58,6 +60,7 @@ namespace Application.Mappings
             existingProfessional.PhoneNumber = request.PhoneNumber ?? existingProfessional.PhoneNumber;
             existingProfessional.City = request.City ?? existingProfessional.City;
             existingProfessional.ImageURL = request.ImageURL ?? existingProfessional.ImageURL;
+            // Available NO se actualiza aquí, solo mediante métodos específicos de SoftDelete/HardDelete
 
             // Campos específicos de Professional
             existingProfessional.Profession = request.Profession ?? existingProfessional.Profession;

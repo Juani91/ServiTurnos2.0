@@ -7,5 +7,6 @@
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? ImageURL { get; set; }
+        public bool Available { get; set; }
     }
 }

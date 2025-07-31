@@ -6,7 +6,8 @@ namespace Application.Interfaces
     public interface IProfessionalService
     {
         void CreateProfessional(ProfessionalRequest request);
-        void DeleteProfessional(int id);
+        void HardDeleteProfessional(int id);
+        bool SoftDeleteProfessional(int id);
         void UpdateProfessional(int id, ProfessionalRequest request);
         List<ProfessionalResponse> GetAllProfessionals();
         ProfessionalResponse GetProfessionalById(int id);

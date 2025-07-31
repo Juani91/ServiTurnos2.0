@@ -13,6 +13,7 @@ public static class AdminMapping
             FirstName = request.FirstName,
             LastName = request.LastName,
             ImageURL = request.ImageURL
+            // Available se omite porque ya tiene valor por defecto true en User
         };
     }
 
@@ -24,7 +25,8 @@ public static class AdminMapping
             Email = admin.Email,
             FirstName = admin.FirstName,
             LastName = admin.LastName,
-            ImageURL = admin.ImageURL
+            ImageURL = admin.ImageURL,
+            Available = admin.Available
         };
     }
 
@@ -40,5 +42,6 @@ public static class AdminMapping
         existingAdmin.FirstName = request.FirstName ?? existingAdmin.FirstName;
         existingAdmin.LastName = request.LastName ?? existingAdmin.LastName;
         existingAdmin.ImageURL = request.ImageURL ?? existingAdmin.ImageURL;
+        // Available NO se actualiza aquí, solo mediante métodos específicos de SoftDelete/HardDelete
     }
 }

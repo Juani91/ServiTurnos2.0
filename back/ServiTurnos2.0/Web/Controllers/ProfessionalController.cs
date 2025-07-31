@@ -34,9 +34,9 @@ namespace Web.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("hard/{id}")]
         [Authorize(Policy = "AdminOrProfessional")]
-        public IActionResult DeleteProfessional([FromRoute] int id)
+        public IActionResult HardDeleteProfessional([FromRoute] int id)
         {
             try
             {
@@ -45,10 +45,34 @@ namespace Web.Controllers
                 var userType = User.FindFirst("UserType")?.Value;
 
                 if (userType != "Admin" && userIdFromToken != id)
-                    return StatusCode(403, "No tenés permiso para eliminar este perfil.");
+                    return StatusCode(403, "No tienes permiso para eliminar este perfil.");
 
-                _professionalService.DeleteProfessional(id);
-                return Ok("Profesional eliminado correctamente.");
+                _professionalService.HardDeleteProfessional(id);
+                return Ok("Profesional eliminado permanentemente.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("soft/{id}")]
+        [Authorize(Policy = "AdminOnly")]
+        public IActionResult SoftDeleteProfessional([FromRoute] int id)
+        {
+            try
+            {
+                bool wasAvailable = _professionalService.SoftDeleteProfessional(id);
+                
+                string message = wasAvailable 
+                    ? "Profesional bloqueado correctamente." 
+                    : "Profesional desbloqueado correctamente.";
+                    
+                return Ok(message);
             }
             catch (KeyNotFoundException ex)
             {
@@ -130,6 +154,5 @@ namespace Web.Controllers
                 return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
             }
         }
-
     }
 }

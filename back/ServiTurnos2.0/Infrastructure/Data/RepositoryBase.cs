@@ -1,4 +1,4 @@
-﻿using Domain.Interface;
+using Domain.Interface;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,9 +19,18 @@ namespace Infrastructure.Data
             _context.SaveChanges();
         }
 
-        public void Delete(T entity)
+        public void HardDelete(T entity)
         {
             _context.Set<T>().Remove(entity);
+            _context.SaveChanges();
+        }
+
+        public void SoftDelete(T entity)
+        {
+            // Cambiar el valor de Available por su contrario
+            var availableProperty = typeof(T).GetProperty("Available");
+            var currentValue = (bool)availableProperty.GetValue(entity);
+            availableProperty.SetValue(entity, !currentValue);
             _context.SaveChanges();
         }
 
