@@ -45,12 +45,12 @@ const Navbar = () => {
         <Nav.Item style={{ flex: 1 }}>
           <Nav.Link
             onClick={() => {
-              if (userType === 'Customer') navigate('/buscar');
+              if (userType === 'Customer') navigate('/buscar-profesionales');
               else if (userType === 'Professional') navigate('/solicitudes');
               else if (userType === 'Admin') navigate('/ver-usuarios');
             }}
             className={`buttons ${
-              (userType === 'Customer' && isActive('/buscar')) ||
+              (userType === 'Customer' && isActive('/buscar-profesionales')) ||
               (userType === 'Professional' && isActive('/solicitudes')) ||
               (userType === 'Admin' && isActive('/ver-usuarios'))
                 ? 'active' : ''

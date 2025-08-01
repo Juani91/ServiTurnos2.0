@@ -44,6 +44,11 @@
   padding: 8px 24px;
 }
 
+.search-cust-profess .btn-hard-delete {
+  border-radius: 8px;
+  padding: 8px 24px;
+}
+
 .card-btn-container {
   display: flex;
   justify-content: flex-end;

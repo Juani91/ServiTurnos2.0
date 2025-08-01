@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from "../../services/authentication/AuthContext"
-import { Form, Container, Row, Col, Modal } from 'react-bootstrap'
-import Input from '../../components/ui/Input'
+import { Modal } from 'react-bootstrap'
 import Button from '../../components/ui/Button'
-import { useUsers } from "../../services/usersContext/UsersContext";
-import { useToast } from "../../context/toastContext/ToastContext";
+import { useUsers } from "../../services/usersContext/UsersContext"
+import { useToast } from "../../context/toastContext/ToastContext"
+import './Profile.css'
 
 const parseJwt = (token) => {
   try {
@@ -21,7 +21,7 @@ const Profile = () => {
   const decoded = token ? parseJwt(token) : null
   const userType = decoded?.UserType
   const userId = decoded?.Id
-  const { showToast } = useToast();
+  const { showToast } = useToast()
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -35,7 +35,7 @@ const Profile = () => {
     availability: '',
   })
 
-  const [originalData, setOriginalData] = useState(null);
+  const [originalData, setOriginalData] = useState(null)
   const [editing, setEditing] = useState(false)
   const [showModal, setShowModal] = useState(false)
 
@@ -46,7 +46,7 @@ const Profile = () => {
     3: "Carpintero",
     4: "Albañil",
     5: "Refrigeración"
-  };
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -56,17 +56,17 @@ const Profile = () => {
   const toggleEdit = () => setEditing((prev) => !prev)
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
+    const file = e.target.files[0]
+    const reader = new FileReader()
 
     reader.onloadend = () => {
-      setFormData((prev) => ({ ...prev, imageURL: reader.result }));
-    };
+      setFormData((prev) => ({ ...prev, imageURL: reader.result }))
+    }
 
     if (file) {
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   const handleDelete = async () => {
     setShowModal(false)
@@ -84,10 +84,9 @@ const Profile = () => {
 
       if (result?.success) {
         showToast('Cuenta eliminada exitosamente', 'success')
-        // Cerrar sesión y redirigir al login después de un breve delay
         setTimeout(() => {
           Logout()
-          navigate('/')
+          navigate('/login')
         }, 1500)
       } else {
         showToast(`Error al eliminar la cuenta: ${result?.msg}`, 'error')
@@ -118,7 +117,7 @@ const Profile = () => {
 
         const data = await response.json()
         setFormData((prev) => ({ ...prev, ...data }))
-        setOriginalData(data);
+        setOriginalData(data)
       } catch (error) {
         console.error('Error de red:', error)
       }
@@ -127,202 +126,204 @@ const Profile = () => {
     fetchProfile()
   }, [token, userType, userId])
 
-  const { UpdateAdmin, UpdateCustomer, UpdateProfessional, HardDeleteAdmin, HardDeleteCustomer, HardDeleteProfessional } = useUsers();
+  const { UpdateAdmin, UpdateCustomer, UpdateProfessional, HardDeleteAdmin, HardDeleteCustomer, HardDeleteProfessional } = useUsers()
 
   const handleSave = async () => {
     if (JSON.stringify(formData) === JSON.stringify(originalData)) {
-      showToast("No se detectaron cambios.", "info");
-      setEditing(false);
-      return;
+      showToast("No se detectaron cambios.", "info")
+      setEditing(false)
+      return
     }
 
-    let result;
+    let result
     if (userType === 'Admin') {
-      result = await UpdateAdmin(userId, formData, token);
+      result = await UpdateAdmin(userId, formData, token)
     } else if (userType === 'Customer') {
-      result = await UpdateCustomer(userId, formData, token);
+      result = await UpdateCustomer(userId, formData, token)
     } else if (userType === 'Professional') {
-      result = await UpdateProfessional(userId, formData, token);
+      result = await UpdateProfessional(userId, formData, token)
     }
 
     if (result?.success) {
-      showToast('Perfil modificado exitosamente!', 'success');
-      setEditing(false);
-      setOriginalData(formData);
+      showToast('Perfil modificado exitosamente!', 'success')
+      setEditing(false)
+      setOriginalData(formData)
     } else {
-      showToast(`Error al guardar: ${result?.msg}`, 'error');
+      showToast(`Error al guardar: ${result?.msg}`, 'error')
     }
-  };
+  }
 
   return (
-    <Container
-      style={{
-        backgroundColor: '#f8f9fa',
-        borderRadius: '10px',
-        padding: '3rem'
-      }}
-    >
-      <Row
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '8rem'
-        }}
-      >
-        <Col md={4} style={{ width: '200px', textAlign: 'center' }}>
-          <img
-            src={formData.imageURL || '/images/NoImage.webp'}
-            alt="Perfil"
-            style={{
-              width: '200px',
-              height: '200px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              marginTop:
-                userType === 'Professional'
-                  ? '20%'
-                  : userType === 'Customer'
-                  ? '10%'
-                  : '0%'
-            }}
-          />
-          {editing && (
-            <Form.Group style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-              <Button
-                variant="secondary"
-                onClick={() => document.getElementById('hiddenFileInput').click()}
-              >
-                Seleccionar archivo
-              </Button>
-              <input
-                type="file"
-                id="hiddenFileInput"
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
-              />
-            </Form.Group>
-          )}
-        </Col>
+    <div className="profile-container">
+      <div className="profile-avatar-section">
+        <img
+          src={formData.imageURL || '/images/NoImage.webp'}
+          alt="Perfil"
+          className="profile-avatar"
+        />
+        {editing && (
+          <>
+            <button
+              className="upload-button"
+              onClick={() => document.getElementById('hiddenFileInput').click()}
+            >
+              Cambiar imagen
+            </button>
+            <input
+              type="file"
+              id="hiddenFileInput"
+              onChange={handleImageUpload}
+              style={{ display: 'none' }}
+              accept="image/*"
+            />
+          </>
+        )}
+      </div>
 
-        <Col md={8} style={{ width: '700px' }}>
-          <Form>
-            <Row>
-              <Col md={6}>
-                <Input
-                  label="Nombre"
+      <div className="profile-form-section">
+        <div className="profile-form-content">
+          <div className="profile-row">
+            <div className="profile-col">
+              <div className="profile-field">
+                <label>Nombre</label>
+                <input
+                  type="text"
                   name="firstName"
-                  value={formData.firstName}
+                  value={formData.firstName || ''}
                   onChange={handleChange}
                   disabled={!editing}
                 />
-              </Col>
-              <Col md={6}>
-                <Input
-                  label="Apellido"
+              </div>
+            </div>
+            <div className="profile-col">
+              <div className="profile-field">
+                <label>Apellido</label>
+                <input
+                  type="text"
                   name="lastName"
-                  value={formData.lastName}
+                  value={formData.lastName || ''}
                   onChange={handleChange}
                   disabled={!editing}
                 />
-              </Col>
-            </Row>
+              </div>
+            </div>
+          </div>
 
-            <Input
-              label="Email"
+          <div className="profile-field">
+            <label>Email</label>
+            <input
               type="email"
               name="email"
-              value={formData.email}
+              value={formData.email || ''}
               onChange={handleChange}
               disabled={!editing}
             />
+          </div>
 
-            {(userType === 'Customer' || userType === 'Professional') && (
-              <Row>
-                <Col md={6}>
-                  <Input
-                    label="Teléfono"
+          {(userType === 'Customer' || userType === 'Professional') && (
+            <div className="profile-row">
+              <div className="profile-col">
+                <div className="profile-field">
+                  <label>Teléfono</label>
+                  <input
+                    type="text"
                     name="phoneNumber"
-                    value={formData.phoneNumber}
+                    value={formData.phoneNumber || ''}
                     onChange={handleChange}
                     disabled={!editing}
                   />
-                </Col>
-                <Col md={6}>
-                  <Input
-                    label="Ciudad"
+                </div>
+              </div>
+              <div className="profile-col">
+                <div className="profile-field">
+                  <label>Ciudad</label>
+                  <input
+                    type="text"
                     name="city"
-                    value={formData.city}
+                    value={formData.city || ''}
                     onChange={handleChange}
                     disabled={!editing}
                   />
-                </Col>
-              </Row>
-            )}
-
-            {userType === 'Professional' && (
-              <>
-                <Form.Group style={{ marginBottom: '1rem' }}>
-                  <Form.Label style={{ fontWeight: 'bold' }}>Profesión</Form.Label>
-                  {editing ? (
-                    <Form.Select
-                      name="profession"
-                      value={formData.profession}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          profession: parseInt(e.target.value, 10),
-                        }))
-                      }
-                    >
-                      {Object.entries(professionMap).map(([key, value]) => (
-                        <option key={key} value={key}>
-                          {value}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  ) : (
-                    <div
-                      className="form-control"
-                      style={{ backgroundColor: '#E9ECEF' }}
-                    >
-                      {professionMap[formData.profession] || 'Desconocido'}
-                    </div>
-                  )}
-                </Form.Group>
-
-                <Input
-                  label="Tarifa"
-                  type="number"
-                  name="fee"
-                  value={formData.fee}
-                  onChange={handleChange}
-                  disabled={!editing}
-                />
-                <Input
-                  label="Disponibilidad"
-                  name="availability"
-                  value={formData.availability}
-                  onChange={handleChange}
-                  disabled={!editing}
-                />
-              </>
-            )}
-
-            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                variant={editing ? 'success' : 'primary'}
-                onClick={editing ? handleSave : toggleEdit}
-                style={{ marginRight: '0.5rem' }}
-              >
-                {editing ? 'Guardar cambios' : 'Modificar'}
-              </Button>
-              <Button variant="danger" onClick={() => setShowModal(true)}>
-                Borrar cuenta
-              </Button>
+                </div>
+              </div>
             </div>
-          </Form>
-        </Col>
-      </Row>
+          )}
+
+          {userType === 'Professional' && (
+            <>
+              <div className="profile-row">
+                <div className="profile-col">
+                  <div className="profile-field">
+                    <label>Profesión</label>
+                    {editing ? (
+                      <select
+                        name="profession"
+                        value={formData.profession || 0}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            profession: parseInt(e.target.value, 10),
+                          }))
+                        }
+                      >
+                        {Object.entries(professionMap).map(([key, value]) => (
+                          <option key={key} value={key}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={professionMap[formData.profession] || 'Desconocido'}
+                        disabled
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="profile-col">
+                  <div className="profile-field">
+                    <label>Tarifa</label>
+                    <input
+                      type="number"
+                      name="fee"
+                      value={formData.fee || ''}
+                      onChange={handleChange}
+                      disabled={!editing}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="profile-field">
+                <label>Disponibilidad</label>
+                <input
+                  type="text"
+                  name="availability"
+                  value={formData.availability || ''}
+                  onChange={handleChange}
+                  disabled={!editing}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="profile-buttons">
+          <button
+            className={`profile-button ${editing ? 'success' : 'primary'}`}
+            onClick={editing ? handleSave : toggleEdit}
+          >
+            {editing ? 'Guardar cambios' : 'Modificar'}
+          </button>
+          <button 
+            className="profile-button danger" 
+            onClick={() => setShowModal(true)}
+          >
+            Borrar cuenta
+          </button>
+        </div>
+      </div>
 
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
@@ -330,15 +331,21 @@ const Profile = () => {
         </Modal.Header>
         <Modal.Body>¿Estás seguro que querés eliminar esta cuenta?</Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <button 
+            className="profile-button secondary" 
+            onClick={() => setShowModal(false)}
+          >
             No
-          </Button>
-          <Button variant="danger" onClick={handleDelete}>
+          </button>
+          <button 
+            className="profile-button danger" 
+            onClick={handleDelete}
+          >
             Sí, eliminar
-          </Button>
+          </button>
         </Modal.Footer>
       </Modal>
-    </Container>
+    </div>
   )
 }
 

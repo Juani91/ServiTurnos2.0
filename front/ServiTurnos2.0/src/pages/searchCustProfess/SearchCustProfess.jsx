@@ -24,10 +24,12 @@ const SearchCustProfess = () => {
   const [allUsers, setAllUsers] = useState([])
   const [filtered, setFiltered] = useState([])
   const [showModal, setShowModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [userToDelete, setUserToDelete] = useState(null)
   const [editForm, setEditForm] = useState({})
   const [activeTab, setActiveTab] = useState('active') // 'active' o 'blocked'
-  const { GetAllCustomers, GetAllProfessionals, UpdateCustomer, UpdateProfessional, SoftDeleteCustomer, SoftDeleteProfessional } = useUsers()
+  const { GetAllCustomers, GetAllProfessionals, UpdateCustomer, UpdateProfessional, SoftDeleteCustomer, SoftDeleteProfessional, HardDeleteCustomer, HardDeleteProfessional } = useUsers()
   const { token } = useAuth()
   const { showToast } = useToast()
 
@@ -239,6 +241,43 @@ const SearchCustProfess = () => {
     }
   }
 
+  const handleHardDelete = (user) => {
+    setUserToDelete(user)
+    setShowDeleteModal(true)
+  }
+
+  const confirmHardDelete = async () => {
+    if (!userToDelete) return
+    
+    try {
+      let result
+      
+      if (userToDelete.userType === 'professional') {
+        result = await HardDeleteProfessional(userToDelete.id, token)
+      } else {
+        result = await HardDeleteCustomer(userToDelete.id, token)
+      }
+
+      if (result.success) {
+        showToast(`${userToDelete.userType === 'professional' ? 'Profesional' : 'Cliente'} eliminado permanentemente!`, 'success')
+        // Recargar los datos para mostrar los cambios
+        await fetchData()
+      } else {
+        showToast(result.msg || 'Error al eliminar usuario', 'error')
+      }
+    } catch (error) {
+      showToast('Error de conexión con el servidor', 'error')
+    } finally {
+      setShowDeleteModal(false)
+      setUserToDelete(null)
+    }
+  }
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false)
+    setUserToDelete(null)
+  }
+
   return (
     <Container className="search-cust-profess">
       {/* Pestañas para cambiar entre usuarios activos y bloqueados */}
@@ -316,9 +355,18 @@ const SearchCustProfess = () => {
                     )}
                   </Card.Text>
                   <div className="card-btn-container">
+                    {activeTab === 'blocked' && (
+                      <Button 
+                        variant="dark" 
+                        className="btn-hard-delete"
+                        onClick={() => handleHardDelete(user)}
+                      >
+                        Eliminar
+                      </Button>
+                    )}
                     <Button 
                       variant="warning" 
-                      className="btn-modify me-2"
+                      className="btn-modify"
                       onClick={() => handleModify(user)}
                     >
                       Modificar
@@ -330,6 +378,7 @@ const SearchCustProfess = () => {
                     >
                       {activeTab === 'active' ? 'Bloquear' : 'Desbloquear'}
                     </Button>
+                    
                   </div>
                 </Card.Body>
               </Card>
@@ -444,6 +493,32 @@ const SearchCustProfess = () => {
           </Button>
           <Button variant="primary" onClick={handleSaveChanges}>
             Guardar Cambios
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de confirmación para eliminar usuario */}
+      <Modal show={showDeleteModal} onHide={handleCloseDeleteModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            ¿Estás seguro que querés eliminar permanentemente a{' '}
+            <strong>
+              {userToDelete?.firstName} {userToDelete?.lastName}
+            </strong>?
+          </p>
+          <p className="text-danger">
+            <small>Esta acción no se puede deshacer.</small>
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseDeleteModal}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={confirmHardDelete}>
+            Sí, eliminar
           </Button>
         </Modal.Footer>
       </Modal>
