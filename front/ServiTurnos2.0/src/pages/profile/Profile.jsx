@@ -116,7 +116,7 @@ const Profile = () => {
         }
 
         const data = await response.json()
-        setFormData((prev) => ({ ...prev, ...data }))
+        setFormData(data)
         setOriginalData(data)
       } catch (error) {
         console.error('Error de red:', error)

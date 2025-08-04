@@ -12,23 +12,22 @@ const parseJwt = (token) => {
 }
 
 const AdminProtected = ({ children }) => {
-  const { token } = useAuth()
+  const { token, isValidToken } = useAuth()
   
-  // Si no hay token, redirigir al login
-  if (!token) {
-    return <Navigate to="/" />
+  // Si no hay token válido, redirigir al login
+  if (!isValidToken()) {
+    return <Navigate to="/" replace />
   }
   
   const decoded = parseJwt(token)
   const userType = decoded?.UserType
   
-  // Si no es Admin, remover token y redirigir
+  // Si no es Admin, mostrar página 404
   if (userType !== 'Admin') {
-    localStorage.removeItem('token')
-    return <Navigate to="/" />
+    return <Navigate to="/404" replace />
   }
   
-  return <div>{children}</div>
+  return children
 }
 
 export default AdminProtected

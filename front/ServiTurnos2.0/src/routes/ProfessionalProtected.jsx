@@ -12,23 +12,22 @@ const parseJwt = (token) => {
 }
 
 const ProfessionalProtected = ({ children }) => {
-  const { token } = useAuth()
+  const { token, isValidToken } = useAuth()
   
-  // Si no hay token, redirigir al login
-  if (!token) {
-    return <Navigate to="/" />
+  // Si no hay token válido, redirigir al login
+  if (!isValidToken()) {
+    return <Navigate to="/" replace />
   }
   
   const decoded = parseJwt(token)
   const userType = decoded?.UserType
   
-  // Si no es Professional, remover token y redirigir
+  // Si no es Professional, mostrar página 404
   if (userType !== 'Professional') {
-    localStorage.removeItem('token')
-    return <Navigate to="/" />
+    return <Navigate to="/404" replace />
   }
   
-  return <div>{children}</div>
+  return children
 }
 
 export default ProfessionalProtected

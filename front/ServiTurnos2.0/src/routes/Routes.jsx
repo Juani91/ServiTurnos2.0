@@ -53,6 +53,9 @@ const Routes = () => {
 
       </Route>
 
+      {/* Ruta específica para 404 */}
+      <Route path="/404" element={<NotFound />} />
+
       {/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
       <Route path="*" element={<NotFound />} />
 

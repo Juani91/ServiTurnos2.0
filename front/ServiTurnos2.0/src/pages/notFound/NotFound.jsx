@@ -33,7 +33,7 @@ const NotFound = () => {
         <h1 className="notfound-title">404 - Página no encontrada</h1>
         
         <p className="notfound-message">
-          La página que estás buscando no existe.
+          La página que estás buscando no existe o no tienes permisos para visitarla.
         </p>
         
         <p className="notfound-link" onClick={handleGoHome}>

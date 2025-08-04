@@ -12,23 +12,22 @@ const parseJwt = (token) => {
 }
 
 const CustomerProtected = ({ children }) => {
-  const { token } = useAuth()
+  const { token, isValidToken } = useAuth()
   
-  // Si no hay token, redirigir al login
-  if (!token) {
-    return <Navigate to="/" />
+  // Si no hay token válido, redirigir al login
+  if (!isValidToken()) {
+    return <Navigate to="/" replace />
   }
   
   const decoded = parseJwt(token)
   const userType = decoded?.UserType
   
-  // Si no es Customer, remover token y redirigir
+  // Si no es Customer, mostrar página 404
   if (userType !== 'Customer') {
-    localStorage.removeItem('token')
-    return <Navigate to="/" />
+    return <Navigate to="/404" replace />
   }
   
-  return <div>{children}</div>
+  return children
 }
 
 export default CustomerProtected
