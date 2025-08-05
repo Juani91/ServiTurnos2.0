@@ -1,4 +1,4 @@
-﻿using Application.Models.Request;
+﻿Application.Models.Request;
 using Application.Models.Response;
 using Domain.Entities;
 
@@ -17,12 +17,12 @@ namespace Application.Mappings
                 PhoneNumber = request.PhoneNumber,
                 City = request.City,
                 ImageURL = request.ImageURL,
-                // Available se omite porque ya tiene valor por defecto true en User
 
                 // Propios de Professional
                 Profession = request.Profession,
-                Fee = request.Fee,
-                Availability = request.Availability
+                Fee = request.Fee
+                // Eliminamos Availability - reemplazado por sistema de slots
+                // Availability = request.Availability
             };
         }
 
@@ -41,8 +41,9 @@ namespace Application.Mappings
 
                 // Propios de Professional
                 Profession = professional.Profession,
-                Fee = professional.Fee,
-                Availability = professional.Availability
+                Fee = professional.Fee
+                // Eliminamos Availability - reemplazado por sistema de slots
+                // Availability = professional.Availability
             };
         }
 
@@ -60,12 +61,12 @@ namespace Application.Mappings
             existingProfessional.PhoneNumber = request.PhoneNumber ?? existingProfessional.PhoneNumber;
             existingProfessional.City = request.City ?? existingProfessional.City;
             existingProfessional.ImageURL = request.ImageURL ?? existingProfessional.ImageURL;
-            // Available NO se actualiza aquí, solo mediante métodos específicos de SoftDelete/HardDelete
 
             // Campos específicos de Professional
             existingProfessional.Profession = request.Profession ?? existingProfessional.Profession;
             existingProfessional.Fee = request.Fee ?? existingProfessional.Fee;
-            existingProfessional.Availability = request.Availability ?? existingProfessional.Availability;
+            // Eliminamos Availability - reemplazado por sistema de slots
+            // existingProfessional.Availability = request.Availability ?? existingProfessional.Availability;
         }
     }
 }

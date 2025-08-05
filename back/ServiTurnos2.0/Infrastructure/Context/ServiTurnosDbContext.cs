@@ -13,5 +13,6 @@ namespace Infrastructure.Context
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Professional> Professionals { get; set; }
         public DbSet<Admin> Admins { get; set; }
+        public DbSet<TimeSlot> TimeSlots { get; set; }
     }
 }

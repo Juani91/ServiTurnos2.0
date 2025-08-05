@@ -15,7 +15,8 @@ namespace Application.Models.Request
         // Propio de Professional
         public Profession? Profession { get; set; }
         public decimal? Fee { get; set; }
-        public string? Availability { get; set; }
 
+        // Eliminamos Availability - reemplazado por sistema de slots
+        // public string? Availability { get; set; }
     }
 }
