@@ -13,9 +13,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
 // DB CONTEXT
@@ -66,7 +64,7 @@ builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
     }
 );
 
-// REPOSITORIOS (Ver)
+// REPOSITORIOS
 builder.Services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
 
 // SERVICIOS
@@ -75,7 +73,7 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IProfessionalService, ProfessionalService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 
-//PARA ASEGURAR UNA CORRECTA CONEXIÓN CON EL FRONT - VER DESPUÉS
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -84,7 +82,7 @@ builder.Services.AddCors(options =>
                           .AllowAnyHeader());
 });
 
-// POLIZAS PARA AUTORIZACIONES
+// POLÍTICAS PARA AUTORIZACIONES
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("CustomerOnly", policy =>
@@ -115,6 +113,18 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+// ? SEMBRAR TIMESLOTS AL INICIAR LA APLICACIÓN
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ServiTurnosDbContext>();
+    
+    // Asegurar que la base de datos esté creada
+    context.Database.EnsureCreated();
+    
+    // Sembrar TimeSlots
+    TimeSlotSeeder.SeedTimeSlots(context);
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -123,13 +133,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
-
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

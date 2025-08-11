@@ -23,7 +23,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("Available")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Email")
                         .HasColumnType("TEXT");
@@ -52,7 +54,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("Available")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("City")
                         .HasColumnType("TEXT");
@@ -86,11 +90,10 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Availability")
-                        .HasColumnType("TEXT");
-
                     b.Property<bool>("Available")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("City")
                         .HasColumnType("TEXT");
@@ -122,6 +125,86 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Professionals");
+                });
+
+            modelBuilder.Entity("Domain.Entities.TimeSlot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Day", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("TimeSlots");
+                });
+
+            modelBuilder.Entity("ProfessionalTimeSlot", b =>
+                {
+                    b.Property<int>("AvailableSlotsId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProfessionalId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("AvailableSlotsId", "ProfessionalId");
+
+                    b.HasIndex("ProfessionalId");
+
+                    b.ToTable("ProfessionalAvailableSlots", (string)null);
+                });
+
+            modelBuilder.Entity("ProfessionalTimeSlot1", b =>
+                {
+                    b.Property<int>("NotAvailableSlotsId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Professional1Id")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("NotAvailableSlotsId", "Professional1Id");
+
+                    b.HasIndex("Professional1Id");
+
+                    b.ToTable("ProfessionalNotAvailableSlots", (string)null);
+                });
+
+            modelBuilder.Entity("ProfessionalTimeSlot", b =>
+                {
+                    b.HasOne("Domain.Entities.TimeSlot", null)
+                        .WithMany()
+                        .HasForeignKey("AvailableSlotsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Professional", null)
+                        .WithMany()
+                        .HasForeignKey("ProfessionalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ProfessionalTimeSlot1", b =>
+                {
+                    b.HasOne("Domain.Entities.TimeSlot", null)
+                        .WithMany()
+                        .HasForeignKey("NotAvailableSlotsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Professional", null)
+                        .WithMany()
+                        .HasForeignKey("Professional1Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

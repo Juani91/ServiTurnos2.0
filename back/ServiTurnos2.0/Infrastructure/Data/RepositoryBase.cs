@@ -27,11 +27,17 @@ namespace Infrastructure.Data
 
         public void SoftDelete(T entity)
         {
-            // Cambiar el valor de Available por su contrario
             var availableProperty = typeof(T).GetProperty("Available");
-            var currentValue = (bool)availableProperty.GetValue(entity);
-            availableProperty.SetValue(entity, !currentValue);
-            _context.SaveChanges();
+            if (availableProperty != null)
+            {
+                var currentValue = (bool?)availableProperty.GetValue(entity) ?? false;
+                availableProperty.SetValue(entity, !currentValue);
+                _context.SaveChanges();
+            }
+            else
+            {
+                throw new InvalidOperationException($"La entidad {typeof(T).Name} no soporta eliminación lógica.");
+            }
         }
 
         public void Update(T entity)
@@ -42,20 +48,54 @@ namespace Infrastructure.Data
 
         public List<T> GetAll()
         {
-            return _context.Set<T>().ToList();
+            var dbSet = _context.Set<T>();
+            
+            // Si es Professional, incluir las relaciones de TimeSlots
+            if (typeof(T) == typeof(Domain.Entities.Professional))
+            {
+                return dbSet.Cast<Domain.Entities.Professional>()
+                           .Include(p => p.AvailableSlots)
+                           .Include(p => p.NotAvailableSlots)
+                           .Cast<T>()
+                           .ToList();
+            }
+            
+            return dbSet.ToList();
         }
 
         public T? GetById(int id)
         {
-            return _context.Set<T>().Find(id);
+            var dbSet = _context.Set<T>();
+            
+            // Si es Professional, incluir las relaciones de TimeSlots
+            if (typeof(T) == typeof(Domain.Entities.Professional))
+            {
+                return dbSet.Cast<Domain.Entities.Professional>()
+                           .Include(p => p.AvailableSlots)
+                           .Include(p => p.NotAvailableSlots)
+                           .Cast<T>()
+                           .FirstOrDefault(e => EF.Property<int>(e, "Id") == id);
+            }
+            
+            return dbSet.Find(id);
         }
-                
-        // VER ESTO
+
         public T? GetByEmail(string email)
         {
-            return _context.Set<T>()
-                           .AsQueryable()
+            var dbSet = _context.Set<T>();
+            
+            // Si es Professional, incluir las relaciones de TimeSlots
+            if (typeof(T) == typeof(Domain.Entities.Professional))
+            {
+                return dbSet.Cast<Domain.Entities.Professional>()
+                           .Include(p => p.AvailableSlots)
+                           .Include(p => p.NotAvailableSlots)
+                           .Cast<T>()
                            .FirstOrDefault(e => EF.Property<string>(e, "Email") == email);
+            }
+            
+            return dbSet.AsQueryable()
+                       .FirstOrDefault(e => EF.Property<string>(e, "Email") == email);
         }
     }
 }
