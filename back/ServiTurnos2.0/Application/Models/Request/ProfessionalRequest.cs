@@ -18,5 +18,8 @@ namespace Application.Models.Request
 
         // Eliminamos Availability - reemplazado por sistema de slots
         // public string? Availability { get; set; }
+
+        // Las listas de TimeSlots se manejan por separado con métodos específicos
+        // No las incluimos en el Request para mantenerlo simple
     }
 }

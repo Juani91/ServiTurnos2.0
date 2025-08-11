@@ -1,4 +1,4 @@
-﻿Application.Models.Request;
+﻿using Application.Models.Request;
 using Application.Models.Response;
 using Domain.Entities;
 
@@ -23,6 +23,9 @@ namespace Application.Mappings
                 Fee = request.Fee
                 // Eliminamos Availability - reemplazado por sistema de slots
                 // Availability = request.Availability
+
+                // Las listas AvailableSlots y NotAvailableSlots se inicializan vacías por defecto
+                // Se manejan por separado con métodos específicos del servicio
             };
         }
 
@@ -41,9 +44,13 @@ namespace Application.Mappings
 
                 // Propios de Professional
                 Profession = professional.Profession,
-                Fee = professional.Fee
+                Fee = professional.Fee,
                 // Eliminamos Availability - reemplazado por sistema de slots
                 // Availability = professional.Availability
+
+                // Mapear las listas de TimeSlots usando TimeSlotMapping
+                AvailableSlots = TimeSlotMapping.ToTimeSlotResponseList(professional.AvailableSlots),
+                NotAvailableSlots = TimeSlotMapping.ToTimeSlotResponseList(professional.NotAvailableSlots)
             };
         }
 
@@ -67,6 +74,9 @@ namespace Application.Mappings
             existingProfessional.Fee = request.Fee ?? existingProfessional.Fee;
             // Eliminamos Availability - reemplazado por sistema de slots
             // existingProfessional.Availability = request.Availability ?? existingProfessional.Availability;
+
+            // Nota: Las listas de TimeSlots se manejan por separado con métodos específicos
+            // No se actualizan aquí para mantener el control sobre estos datos
         }
     }
 }

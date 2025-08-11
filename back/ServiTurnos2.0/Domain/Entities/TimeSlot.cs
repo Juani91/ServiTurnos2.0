@@ -6,6 +6,6 @@ namespace Domain.Entities
     {
         public int Id { get; set; }
         public DayOfWeek Day { get; set; }
-        public Enum.TimeSlot Slot { get; set; }
+        public Enum.TimeSlotEnum Slot { get; set; }
     }
 }

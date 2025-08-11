@@ -1,6 +1,6 @@
 namespace Domain.Enum
 {
-    public enum TimeSlot
+    public enum TimeSlotEnum
     {
         // Turno Mañana
         De7A8 = 0,

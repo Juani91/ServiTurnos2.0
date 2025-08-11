@@ -6,6 +6,6 @@ namespace Application.Models.Response
     {
         public int Id { get; set; }
         public DayOfWeek Day { get; set; }
-        public TimeSlot Slot { get; set; }
+        public TimeSlotEnum Slot { get; set; }
     }
 }
