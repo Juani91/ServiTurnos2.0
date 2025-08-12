@@ -9,8 +9,8 @@ namespace Domain.Entities
 
         public Profession? Profession { get; set; }
         public decimal? Fee { get; set; }
-        public string? Availability { get; set; }
-
-        // Agregar reuniones y reseñas
+        
+        // Lista de meetings del professional
+        public List<Meeting> Meetings { get; set; } = [];
     }
 }
