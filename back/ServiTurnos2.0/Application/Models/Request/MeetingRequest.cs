@@ -6,8 +6,7 @@ namespace Application.Models.Request
     {
         public int CustomerId { get; set; }
         public int ProfessionalId { get; set; }
-        public DateTime? Day { get; set; }
-        public TimeSpan? Hour { get; set; }
+        public DateTime? MeetingDate { get; set; }
         public string? JobInfo { get; set; }
     }
 }

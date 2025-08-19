@@ -107,5 +107,18 @@ namespace Application.Services
 
             return AdminMapping.ToAdminResponse(admin);
         }
+
+        public AdminResponse GetThisAdmin(int userIdFromToken)
+        {
+            if (userIdFromToken <= 0)
+                throw new ArgumentException("ID de usuario inválido.");
+
+            var admin = _adminRepository.GetById(userIdFromToken);
+
+            if (admin == null)
+                throw new KeyNotFoundException($"El administrador autenticado con ID {userIdFromToken} no fue encontrado.");
+
+            return AdminMapping.ToAdminResponse(admin);
+        }
     }
 }

@@ -154,5 +154,31 @@ namespace Web.Controllers
                 return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
             }
         }
+
+        [HttpGet("me")]
+        [Authorize(Policy = "ProfessionalOnly")]
+        public IActionResult GetThisProfessional()
+        {
+            try
+            {
+                // Obtener el ID del Professional del token JWT
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                
+                var professional = _professionalService.GetThisProfessional(userIdFromToken);
+                return Ok(professional);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
+            }
+        }
     }
 }

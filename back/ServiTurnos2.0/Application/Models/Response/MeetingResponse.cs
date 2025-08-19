@@ -8,10 +8,9 @@ namespace Application.Models.Response
         public int CustomerId { get; set; }
         public int ProfessionalId { get; set; }
         public MeetingStatus Status { get; set; }
-        public DateTime? Day { get; set; }
-        public TimeSpan? Hour { get; set; }
+        public DateTime? MeetingDate { get; set; }
         public string? JobInfo { get; set; }
         public bool JobDone { get; set; }   
-        public bool Available { get; set; } // ? Agregar Available al response
+        public bool Available { get; set; }
     }
 }

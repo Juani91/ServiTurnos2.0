@@ -11,5 +11,6 @@ namespace Application.Interfaces
         void UpdateProfessional(int id, ProfessionalRequest request);
         List<ProfessionalResponse> GetAllProfessionals();
         ProfessionalResponse GetProfessionalById(int id);
+        ProfessionalResponse GetThisProfessional(int userIdFromToken);
     }
 }

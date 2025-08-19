@@ -105,5 +105,18 @@ namespace Application.Services
 
             return CustomerMapping.ToCustomerResponse(customer);
         }
+
+        public CustomerResponse GetThisCustomer(int userIdFromToken)
+        {
+            if (userIdFromToken <= 0)
+                throw new ArgumentException("ID de usuario inválido.");
+
+            var customer = _customerRepository.GetById(userIdFromToken);
+
+            if (customer == null)
+                throw new KeyNotFoundException($"El cliente autenticado con ID {userIdFromToken} no fue encontrado.");
+
+            return CustomerMapping.ToCustomerResponse(customer);
+        }
     }
 }

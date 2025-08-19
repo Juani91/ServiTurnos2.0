@@ -12,8 +12,7 @@ namespace Application.Mappings
             {
                 CustomerId = request.CustomerId,
                 ProfessionalId = request.ProfessionalId,
-                Day = request.Day,
-                Hour = request.Hour,
+                MeetingDate = request.MeetingDate,
                 JobInfo = request.JobInfo
                 // Available se omite porque ya tiene valor por defecto true
             };
@@ -27,11 +26,10 @@ namespace Application.Mappings
                 CustomerId = meeting.CustomerId,
                 ProfessionalId = meeting.ProfessionalId,
                 Status = meeting.Status,
-                Day = meeting.Day,
-                Hour = meeting.Hour,
+                MeetingDate = meeting.MeetingDate,
                 JobInfo = meeting.JobInfo,
                 JobDone = meeting.JobDone,
-                Available = meeting.Available // ? Incluir Available en response
+                Available = meeting.Available
             };
         }
 
@@ -42,8 +40,7 @@ namespace Application.Mappings
 
         public static void UpdateMeetingMapped(Meeting existingMeeting, MeetingRequest request)
         {
-            existingMeeting.Day = request.Day ?? existingMeeting.Day;
-            existingMeeting.Hour = request.Hour ?? existingMeeting.Hour;
+            existingMeeting.MeetingDate = request.MeetingDate ?? existingMeeting.MeetingDate;
             existingMeeting.JobInfo = request.JobInfo ?? existingMeeting.JobInfo;
             
             // Available NO se actualiza aquí, solo mediante métodos específicos de SoftDelete

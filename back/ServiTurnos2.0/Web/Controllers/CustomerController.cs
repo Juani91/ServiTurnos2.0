@@ -153,5 +153,30 @@ namespace Web.Controllers
                 return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
             }
         }
+
+        [HttpGet("me")]
+        [Authorize(Policy = "CustomerOnly")] // dejar como customer only porque quizás explota todo
+        public IActionResult GetThisCustomer()
+        {
+            try
+            {
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                
+                var customer = _customerService.GetThisCustomer(userIdFromToken);
+                return Ok(customer);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
+            }
+        }
     }
 }

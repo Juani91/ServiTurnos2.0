@@ -105,5 +105,19 @@ namespace Application.Services
 
             return ProfessionalMapping.ToProfessionalResponse(professional);
         }
+
+        // 👈 NUEVO MÉTODO AGREGADO
+        public ProfessionalResponse GetThisProfessional(int userIdFromToken)
+        {
+            if (userIdFromToken <= 0)
+                throw new ArgumentException("ID de usuario inválido.");
+
+            var professional = _professionalRepository.GetById(userIdFromToken);
+
+            if (professional == null)
+                throw new KeyNotFoundException($"El profesional autenticado con ID {userIdFromToken} no fue encontrado.");
+
+            return ProfessionalMapping.ToProfessionalResponse(professional);
+        }
     }
 }
