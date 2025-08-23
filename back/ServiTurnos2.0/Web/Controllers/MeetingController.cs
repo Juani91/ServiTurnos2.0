@@ -133,7 +133,7 @@ namespace Web.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}")]  
         [Authorize(Policy = "AllUsers")]
         public IActionResult GetMeetingById(int id)
         {
@@ -262,17 +262,22 @@ namespace Web.Controllers
         }
 
         [HttpPut("{id}/finalize")]
-        [Authorize(Policy = "AdminOrCustomer")]
+        [Authorize(Policy = "AllUsers")]
         public IActionResult FinalizeMeeting(int id)
         {
             try
             {
-                // Verificar que el professional es dueño de la meeting
+                // Verificar que el usuario tiene permisos para finalizar la meeting
                 var meeting = _meetingService.GetMeetingById(id);
                 var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                var userType = User.FindFirst("UserType")?.Value;
 
-                if (meeting.ProfessionalId != userIdFromToken)
-                    return StatusCode(403, "No puedes finalizar una meeting que no es tuya.");
+                if (userType != "Admin" && 
+                    meeting.CustomerId != userIdFromToken && 
+                    meeting.ProfessionalId != userIdFromToken)
+                {
+                    return StatusCode(403, "No puedes finalizar esta meeting.");
+                }
 
                 _meetingService.FinalizeMeeting(id);
                 return Ok("Meeting finalizada correctamente.");
@@ -293,7 +298,7 @@ namespace Web.Controllers
         #endregion
 
         #region Consultas Específicas
-        [HttpGet("customer/{customerId}")]
+        [HttpGet("customer/{customerId}")]  
         [Authorize(Policy = "AllUsers")]
         public IActionResult GetMeetingsByCustomer(int customerId)
         {
@@ -319,7 +324,7 @@ namespace Web.Controllers
             }
         }
 
-        [HttpGet("professional/{professionalId}")]
+        [HttpGet("professional/{professionalId}")] 
         [Authorize(Policy = "AllUsers")]
         public IActionResult GetMeetingsByProfessional(int professionalId)
         {
@@ -345,7 +350,33 @@ namespace Web.Controllers
             }
         }
 
-        [HttpGet("status/{status}")]
+        [HttpGet("professional/{professionalId}/pending")]
+        [Authorize(Policy = "AllUsers")]
+        public IActionResult GetPendingMeetingsByProfessional(int professionalId)
+        {
+            try
+            {
+                // Verificar permisos
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                var userType = User.FindFirst("UserType")?.Value;
+
+                if (userType != "Admin" && userIdFromToken != professionalId)
+                    return StatusCode(403, "No puedes ver las meetings pendientes de otro usuario.");
+
+                var meetings = _meetingService.GetPendingMeetingsByProfessional(professionalId);
+                return Ok(meetings);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
+            }
+        }
+
+        [HttpGet("status/{status}")] 
         [Authorize(Policy = "AllUsers")]
         public IActionResult GetMeetingsByStatus(string status, [FromQuery] int userId)
         {

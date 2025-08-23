@@ -203,6 +203,19 @@ namespace Application.Services
 
             return MeetingMapping.ToMeetingResponseList(meetings);
         }
+
+        public List<MeetingResponse> GetPendingMeetingsByProfessional(int professionalId)
+        {
+            var professional = _professionalRepository.GetById(professionalId);
+            if (professional == null)
+                throw new KeyNotFoundException($"El profesional con ID {professionalId} no fue encontrado.");
+
+            var meetings = _meetingRepository.GetAll()
+                .Where(m => m.ProfessionalId == professionalId && m.Status == MeetingStatus.Pendiente)
+                .ToList();
+
+            return MeetingMapping.ToMeetingResponseList(meetings);
+        }
         #endregion
     }
 }

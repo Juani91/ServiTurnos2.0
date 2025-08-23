@@ -16,7 +16,7 @@ namespace Web.Controllers
             _authenticationService = authenticationService;
         }
 
-        [HttpPost("authenticate")]
+        [HttpPost]
         public IActionResult Authenticate([FromBody] AuthenticationRequest authenticationRequest)
         {
             try

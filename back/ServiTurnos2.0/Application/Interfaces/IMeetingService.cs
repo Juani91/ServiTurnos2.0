@@ -23,5 +23,6 @@ namespace Application.Interfaces
         List<MeetingResponse> GetMeetingsByCustomer(int customerId);
         List<MeetingResponse> GetMeetingsByProfessional(int professionalId);
         List<MeetingResponse> GetMeetingsByStatus(int userId, string status);
+        List<MeetingResponse> GetPendingMeetingsByProfessional(int professionalId);
     }
 }
