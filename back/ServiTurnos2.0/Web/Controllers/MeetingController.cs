@@ -401,6 +401,25 @@ namespace Web.Controllers
                 return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
             }
         }
+
+        [HttpGet("all-status/{status}")]
+        [Authorize(Policy = "AdminOnly")]
+        public IActionResult GetAllMeetingsByStatus(string status)
+        {
+            try
+            {
+                var meetings = _meetingService.GetAllMeetingsByStatus(status);
+                return Ok(meetings);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
+            }
+        }
         #endregion
     }
 }

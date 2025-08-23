@@ -216,6 +216,18 @@ namespace Application.Services
 
             return MeetingMapping.ToMeetingResponseList(meetings);
         }
+
+        public List<MeetingResponse> GetAllMeetingsByStatus(string status)
+        {
+            if (!System.Enum.TryParse<MeetingStatus>(status, true, out var meetingStatus))
+                throw new ArgumentException($"El estado '{status}' no es válido.");
+
+            var meetings = _meetingRepository.GetAll()
+                .Where(m => m.Status == meetingStatus)
+                .ToList();
+
+            return MeetingMapping.ToMeetingResponseList(meetings);
+        }
         #endregion
     }
 }
