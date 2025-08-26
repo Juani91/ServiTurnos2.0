@@ -32,8 +32,6 @@ const Navbar = () => {
 
           <Nav.Link
             onClick={() => {
-              // if (userType === 'Customer' || userType === 'Admin') navigate('/profile');
-              // else if (userType === 'Professional') navigate('/profile');
               navigate('/profile');
             }}
             className={`buttons ${isActive('/profile') ? 'active' : ''}`}
@@ -65,17 +63,18 @@ const Navbar = () => {
         <Nav.Item style={{ flex: 1 }}>
           <Nav.Link
             onClick={() => {
-              if (userType === 'Professional' || userType === 'Customer') navigate('/citas');
+              if (userType === 'Customer') navigate('/solicitudes-enviadas');
+              else if (userType === 'Professional') navigate('/citas');
               else if (userType === 'Admin') navigate('/ver-citas');
             }}
             className={`buttons ${
-              ((userType === 'Professional' || userType === 'Customer') && isActive('/citas')) ||
+              (userType === 'Customer' && isActive('/solicitudes-enviadas')) ||
+              (userType === 'Professional' && isActive('/citas')) ||
               (userType === 'Admin' && isActive('/ver-citas'))
                 ? 'active' : ''
             }`}
           >
-            {(userType === 'Professional' || userType === 'Customer') && 'Citas'}
-            {userType === 'Admin' && 'Ver citas'}
+            Citas
           </Nav.Link>
         </Nav.Item>
 

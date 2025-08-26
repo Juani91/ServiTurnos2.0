@@ -49,16 +49,16 @@ export const AuthProvider = ({ children }) => {
     const requestData = { email, password };
 
     try {
-      const response = await fetch("https://localhost:7286/api/Authentication/authenticate", {
+      const response = await fetch("https://localhost:7286/api/Authentication", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       });
 
-      const text = await response.text(); // ✅ Leemos el texto una sola vez
+      const text = await response.text(); // Leemos el texto una sola vez
 
       if (!response.ok) {
-        return { success: false, msg: text }; // 🛑 Mensaje de error del backend
+        return { success: false, msg: text }; // Mensaje de error del backend
       }
 
       // ✅ Si el login fue exitoso, guardamos el token

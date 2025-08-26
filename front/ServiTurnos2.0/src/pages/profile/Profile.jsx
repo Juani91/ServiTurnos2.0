@@ -83,7 +83,7 @@ const Profile = () => {
       }
 
       if (result?.success) {
-        showToast('Cuenta eliminada exitosamente', 'success')
+        showToast('Se acaba de eliminar tu cuenta en ServiTurnos', 'success')
         setTimeout(() => {
           Logout()
           navigate('/login')

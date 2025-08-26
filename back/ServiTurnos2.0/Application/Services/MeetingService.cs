@@ -156,7 +156,7 @@ namespace Application.Services
                 throw new KeyNotFoundException($"La meeting con ID {meetingId} no fue encontrada.");
 
             if (meeting.Status != MeetingStatus.Aceptada)
-                throw new InvalidOperationException("Solo se pueden finalizar meetings en estado Aceptada.");
+                throw new InvalidOperationException("Solo se pueden finalizar citas que fueron Aceptadas.");
 
             meeting.Status = MeetingStatus.Finalizada;
             meeting.JobDone = true;

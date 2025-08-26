@@ -1,0 +1,80 @@
+.view-sent-meetings {
+  align-self: flex-start;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.view-sent-meetings .card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: none;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 1.5rem;
+  min-height: 280px; /* Altura mínima más grande */
+  height: auto; /* Permite que crezca automáticamente */
+}
+
+.view-sent-meetings .card-img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 100px;
+  margin-right: 24px;
+}
+
+.view-sent-meetings .card-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 200px; /* Altura mínima del contenido */
+}
+
+.view-sent-meetings .card-title {
+  font-size: 1.3rem;
+  margin-bottom: 0.7rem;
+}
+
+.view-sent-meetings .card-text {
+  margin-bottom: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  flex-grow: 1;
+  line-height: 1.5; /* Altura de línea más generosa */
+}
+
+.view-sent-meetings .btn-cancel {
+  border-radius: 8px;
+  padding: 8px 24px;
+}
+
+.view-sent-meetings .btn-finalize {
+  border-radius: 8px;
+  padding: 8px 24px;
+}
+
+.card-btn-container {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.meeting-status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.card-meeting {
+  background-color: #f8f9fa !important; /* Color neutro para meetings */
+}

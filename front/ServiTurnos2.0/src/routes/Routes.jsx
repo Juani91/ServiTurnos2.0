@@ -6,6 +6,7 @@ import Layout from '../components/layout/Layout' // 🆕 importamos el layout
 import Profile from '../pages/profile/Profile'
 import SearchProfessionals from '../pages/searchProfessionals/searchProfessionals'
 import SearchCustProfess from '../pages/searchCustProfess/SearchCustProfess'
+import ViewSentMeetings from '../pages/viewSentMeetings/ViewSentMeetings'
 import NotFound from '../pages/notFound/NotFound'
 
 // Importamos los componentes protectores
@@ -35,6 +36,15 @@ const Routes = () => {
           element={
             <CustomerProtected>
               <SearchProfessionals />
+            </CustomerProtected>
+          } 
+        />
+
+        <Route 
+          path="/solicitudes-enviadas" 
+          element={
+            <CustomerProtected>
+              <ViewSentMeetings />
             </CustomerProtected>
           } 
         />
