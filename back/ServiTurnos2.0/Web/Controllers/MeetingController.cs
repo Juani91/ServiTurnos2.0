@@ -18,7 +18,7 @@ namespace Web.Controllers
 
         #region CRUD Básicos
         [HttpPost]
-        [Authorize(Policy = "AdminOrCustomer")]
+        [Authorize(Policy = "CustomerOnly")]
         public IActionResult CreateMeeting([FromBody] MeetingRequest request)
         {
             try

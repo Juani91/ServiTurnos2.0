@@ -229,5 +229,74 @@ namespace Application.Services
             return MeetingMapping.ToMeetingResponseList(meetings);
         }
         #endregion
+
+        #region Métodos para cuando se banea o elimina a un usuario
+        public void HandleUserAvailabilityChange(int userId, string userType, bool isAvailable)
+        {
+            if (isAvailable)
+            {
+                EnableMeetingsForUser(userId, userType);
+            }
+            else
+            {
+                DisableMeetingsForUser(userId, userType);
+            }
+        }
+
+        public void DisableMeetingsForUser(int userId, string userType)
+        {
+            var meetings = new List<Meeting>();
+
+            if (userType.ToLower() == "customer")
+            {
+                meetings = _meetingRepository.GetAll()
+                    .Where(m => m.CustomerId == userId && m.Available)
+                    .ToList();
+            }
+            else if (userType.ToLower() == "professional")
+            {
+                meetings = _meetingRepository.GetAll()
+                    .Where(m => m.ProfessionalId == userId && m.Available)
+                    .ToList();
+            }
+
+            foreach (var meeting in meetings)
+            {
+                meeting.Available = false;
+                _meetingRepository.Update(meeting);
+            }
+        }
+
+        public void EnableMeetingsForUser(int userId, string userType)
+        {
+            var meetings = new List<Meeting>();
+
+            if (userType.ToLower() == "customer")
+            {
+                meetings = _meetingRepository.GetAll()
+                    .Where(m => m.CustomerId == userId && !m.Available)
+                    .ToList();
+            }
+            else if (userType.ToLower() == "professional")
+            {
+                meetings = _meetingRepository.GetAll()
+                    .Where(m => m.ProfessionalId == userId && !m.Available)
+                    .ToList();
+            }
+
+            // Solo habilitar meetings si AMBOS usuarios (Customer y Professional) están disponibles
+            foreach (var meeting in meetings)
+            {
+                var customer = _customerRepository.GetById(meeting.CustomerId);
+                var professional = _professionalRepository.GetById(meeting.ProfessionalId);
+
+                if (customer?.Available == true && professional?.Available == true)
+                {
+                    meeting.Available = true;
+                    _meetingRepository.Update(meeting);
+                }
+            }
+        }
+        #endregion
     }
 }

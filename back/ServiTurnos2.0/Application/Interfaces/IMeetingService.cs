@@ -14,10 +14,10 @@ namespace Application.Interfaces
         MeetingResponse GetMeetingById(int id);
 
         // Métodos específicos para el flujo de negocio
-        void AcceptMeeting(int meetingId); // Pendiente ? Aceptada
-        void RejectMeeting(int meetingId); // Pendiente ? Rechazada
-        void CancelMeeting(int meetingId); // Pendiente o Aceptada ? Cancelada (JobDone = false)
-        void FinalizeMeeting(int meetingId); // Aceptada ? Finalizada (JobDone = true)
+        void AcceptMeeting(int meetingId); // Pendiente -> Aceptada
+        void RejectMeeting(int meetingId); // Pendiente -> Rechazada
+        void CancelMeeting(int meetingId); // Pendiente o Aceptada -> Cancelada (JobDone = false)
+        void FinalizeMeeting(int meetingId); // Aceptada -> Finalizada (JobDone = true)
 
         // Métodos de consulta específicos
         List<MeetingResponse> GetMeetingsByCustomer(int customerId);
@@ -25,5 +25,10 @@ namespace Application.Interfaces
         List<MeetingResponse> GetMeetingsByStatus(int userId, string status);
         List<MeetingResponse> GetPendingMeetingsByProfessional(int professionalId);
         List<MeetingResponse> GetAllMeetingsByStatus(string status);
+
+        // Métodos para cuando se banea o elimina a un ususario
+        void HandleUserAvailabilityChange(int userId, string userType, bool isAvailable);
+        void DisableMeetingsForUser(int userId, string userType);
+        void EnableMeetingsForUser(int userId, string userType);
     }
 }

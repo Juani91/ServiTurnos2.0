@@ -12,15 +12,18 @@ namespace Application.Services
         private readonly IRepositoryBase<Customer> _customerRepository;
         private readonly IRepositoryBase<Professional> _professionalRepository;
         private readonly IRepositoryBase<Admin> _adminRepository;
+        private readonly IMeetingService _meetingService;
 
         public CustomerService(
             IRepositoryBase<Customer> customerRepository,
             IRepositoryBase<Professional> professionalRepository,
-            IRepositoryBase<Admin> adminRepository)
+            IRepositoryBase<Admin> adminRepository,
+            IMeetingService meetingService)
         {
             _customerRepository = customerRepository;
             _professionalRepository = professionalRepository;
             _adminRepository = adminRepository;
+            _meetingService = meetingService;
         }
 
         public void CreateCustomer(CustomerRequest request)
@@ -53,6 +56,9 @@ namespace Application.Services
                 throw new KeyNotFoundException($"El cliente con ID {id} no fue encontrado.");
             }
 
+            // Deshabilitar meetings antes del hard delete
+            _meetingService.DisableMeetingsForUser(id, "customer");
+
             _customerRepository.HardDelete(customer);
         }
 
@@ -67,6 +73,9 @@ namespace Application.Services
 
             bool wasAvailable = customer.Available; // Guardamos el estado anterior
             _customerRepository.SoftDelete(customer);
+
+            // Manejar el cambio de disponibilidad en las meetings
+            _meetingService.HandleUserAvailabilityChange(id, "customer", !wasAvailable);
             
             return wasAvailable; // Retornamos true si estaba disponible (ahora bloqueado), false si estaba bloqueado (ahora desbloqueado)
         }
