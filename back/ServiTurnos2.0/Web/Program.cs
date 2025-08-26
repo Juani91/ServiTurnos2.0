@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Models.Helpers;
 using Application.Services;
 using Domain.Interface;
@@ -26,7 +26,7 @@ builder.Services.AddDbContext<ServiTurnosDbContext>
 builder.Services.Configure<AuthenticationServiceOptions>
     (builder.Configuration.GetSection("AuthenticationServiceOptions"));
 
-// AUTENTICACI�N EN SWAGGER
+// AUTENTICACIÓN EN SWAGGER
 builder.Services.AddSwaggerGen(setupAction =>
 {
     setupAction.AddSecurityDefinition("ServiTurnosApiBearerAuth", new OpenApiSecurityScheme()
@@ -74,8 +74,9 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IProfessionalService, ProfessionalService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IMeetingService, MeetingService>(); // 👈 AGREGAR ESTA LÍNEA
 
-//PARA ASEGURAR UNA CORRECTA CONEXI�N CON EL FRONT - VER DESPU�S
+//PARA ASEGURAR UNA CORRECTA CONEXIÓN CON EL FRONT - VER DESPUÉS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",

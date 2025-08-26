@@ -12,15 +12,18 @@ namespace Application.Services
         private readonly IRepositoryBase<Customer> _customerRepository;
         private readonly IRepositoryBase<Professional> _professionalRepository;
         private readonly IRepositoryBase<Admin> _adminRepository;
+        private readonly IMeetingService _meetingService;
 
         public ProfessionalService(
             IRepositoryBase<Customer> customerRepository,
             IRepositoryBase<Professional> professionalRepository,
-            IRepositoryBase<Admin> adminRepository)
+            IRepositoryBase<Admin> adminRepository,
+            IMeetingService meetingService)
         {
             _customerRepository = customerRepository;
             _professionalRepository = professionalRepository;
             _adminRepository = adminRepository;
+            _meetingService = meetingService;
         }
 
         public void CreateProfessional(ProfessionalRequest request)
@@ -53,6 +56,9 @@ namespace Application.Services
                 throw new KeyNotFoundException($"El profesional con ID {id} no fue encontrado.");
             }
 
+            // Deshabilitar meetings antes del hard delete
+            _meetingService.DisableMeetingsForUser(id, "professional");
+
             _professionalRepository.HardDelete(professional);
         }
 
@@ -67,6 +73,9 @@ namespace Application.Services
 
             bool wasAvailable = professional.Available; // Guardamos el estado anterior
             _professionalRepository.SoftDelete(professional);
+
+            // Manejar el cambio de disponibilidad en las meetings
+            _meetingService.HandleUserAvailabilityChange(id, "professional", !wasAvailable);
             
             return wasAvailable; // Retornamos true si estaba disponible (ahora bloqueado), false si estaba bloqueado (ahora desbloqueado)
         }
@@ -102,6 +111,19 @@ namespace Application.Services
 
             if (professional == null)
                 throw new KeyNotFoundException($"El profesional con ID {id} no fue encontrado.");
+
+            return ProfessionalMapping.ToProfessionalResponse(professional);
+        }
+
+        public ProfessionalResponse GetThisProfessional(int userIdFromToken)
+        {
+            if (userIdFromToken <= 0)
+                throw new ArgumentException("ID de usuario inválido.");
+
+            var professional = _professionalRepository.GetById(userIdFromToken);
+
+            if (professional == null)
+                throw new KeyNotFoundException($"El profesional autenticado con ID {userIdFromToken} no fue encontrado.");
 
             return ProfessionalMapping.ToProfessionalResponse(professional);
         }

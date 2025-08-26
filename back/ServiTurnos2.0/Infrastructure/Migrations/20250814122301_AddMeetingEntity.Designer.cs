@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ServiTurnosDbContext))]
-    partial class ServiTurnosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250814122301_AddMeetingEntity")]
+    partial class AddMeetingEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.3");
@@ -93,13 +96,16 @@ namespace Infrastructure.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("Day")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeSpan?>("Hour")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("JobDone")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("JobInfo")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("MeetingDate")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("ProfessionalId")

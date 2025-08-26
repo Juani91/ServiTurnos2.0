@@ -11,5 +11,6 @@ namespace Application.Interfaces
         void UpdateCustomer(int id, CustomerRequest request);
         List<CustomerResponse> GetAllCustomers();
         CustomerResponse GetCustomerById(int id);
+        CustomerResponse GetThisCustomer(int userIdFromToken);
     }
 }

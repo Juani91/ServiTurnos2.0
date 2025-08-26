@@ -11,5 +11,6 @@ namespace Application.Interfaces
         void UpdateAdmin(int id, AdminRequest request);
         List<AdminResponse> GetAllAdmins();
         AdminResponse GetAdminById(int id);
+        AdminResponse GetThisAdmin(int userIdFromToken);
     }
 }

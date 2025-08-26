@@ -129,12 +129,37 @@ namespace Web.Controllers
         {
             try
             {
-                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
-                if (userIdFromToken != id)
-                    return StatusCode(403, "No tenés permiso para ver otro administrador.");
+                //var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                //if (userIdFromToken != id)
+                //    return StatusCode(403, "No tenés permiso para ver otro administrador.");
 
                 var admin = _adminService.GetAdminById(id);
                 return Ok(admin);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Ocurrió un error inesperado: {ex.Message}");
+            }
+        }
+
+        [HttpGet("me")]
+        public IActionResult GetThisAdmin()
+        {
+            try
+            {
+                // Obtener el ID del Admin del token JWT
+                var userIdFromToken = int.Parse(User.FindFirst("Id")?.Value ?? "0");
+                
+                var admin = _adminService.GetThisAdmin(userIdFromToken);
+                return Ok(admin);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (KeyNotFoundException ex)
             {
