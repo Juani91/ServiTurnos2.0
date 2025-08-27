@@ -279,6 +279,12 @@ namespace Web.Controllers
                     return StatusCode(403, "No puedes finalizar esta meeting.");
                 }
 
+                // Validar que la hora actual sea posterior a la hora pactada
+                if (meeting.MeetingDate == null || DateTime.Now < meeting.MeetingDate)
+                {
+                    return BadRequest("La meeting no puede ser finalizada antes de la hora pactada.");
+                }
+
                 _meetingService.FinalizeMeeting(id);
                 return Ok("Meeting finalizada correctamente.");
             }

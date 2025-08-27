@@ -40,12 +40,14 @@ const ViewSentMeetings = () => {
   const [meetings, setMeetings] = useState([])
   const [professionals, setProfessionals] = useState([])
   const [filtered, setFiltered] = useState([])
-  const [activeTab, setActiveTab] = useState('pending') // 'pending', 'accepted', 'rejected'
+  const [activeTab, setActiveTab] = useState('pending')
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showFinalizeModal, setShowFinalizeModal] = useState(false)
   const [meetingToCancel, setMeetingToCancel] = useState(null)
+  const [meetingToFinalize, setMeetingToFinalize] = useState(null)
 
   const { token } = useAuth()
-  const { GetAllMeetingsByCustomer } = useMeetings()
+  const { GetAllMeetingsByCustomer, CancelMeeting, FinalizeMeeting } = useMeetings()
   const { GetAllProfessionals } = useUsers()
   const { showToast } = useToast()
 
@@ -53,29 +55,30 @@ const ViewSentMeetings = () => {
   const decoded = token ? parseJwt(token) : null
   const customerId = decoded?.Id
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!customerId) return
+  const fetchMeetings = async () => {
+    if (!customerId) return
 
-      const [meetingsRes, professionalsRes] = await Promise.all([
-        GetAllMeetingsByCustomer(customerId, token),
-        GetAllProfessionals(token)
-      ])
+    const [meetingsRes, professionalsRes] = await Promise.all([
+      GetAllMeetingsByCustomer(customerId, token),
+      GetAllProfessionals(token)
+    ])
 
-      if (meetingsRes.success && professionalsRes.success) {
-        // Filtrar solo meetings que estén disponibles (Available = true)
-        const availableMeetings = meetingsRes.data.filter(meeting => meeting.available === true)
-        setMeetings(availableMeetings)
-        setProfessionals(professionalsRes.data)
-        
-        // Filtrar según la pestaña activa
-        filterMeetingsByStatus(availableMeetings, activeTab)
-      } else {
-        showToast('Error al cargar las meetings', 'error')
-      }
+    if (meetingsRes.success && professionalsRes.success) {
+      // Filtrar solo meetings que estén disponibles (Available = true)
+      const availableMeetings = meetingsRes.data.filter(meeting => meeting.available === true)
+      setMeetings(availableMeetings)
+      setProfessionals(professionalsRes.data)
+      
+      // Filtrar según la pestaña activa
+      filterMeetingsByStatus(availableMeetings, activeTab)
+    } else {
+      showToast('Error al cargar las meetings', 'error')
     }
-    fetchData()
-  }, [customerId, token, GetAllMeetingsByCustomer, GetAllProfessionals])
+  }
+
+  useEffect(() => {
+    fetchMeetings()
+  }, [customerId, token])
 
   useEffect(() => {
     if (meetings.length > 0) {
@@ -84,7 +87,6 @@ const ViewSentMeetings = () => {
   }, [activeTab, meetings])
 
   const filterMeetingsByStatus = (allMeetings, status) => {
-    // Doble filtrado: por disponibilidad y por estado
     const filteredMeetings = allMeetings.filter(meeting => {
       return meeting.available === true && getStatusCategory(meeting.status) === status
     })
@@ -102,7 +104,6 @@ const ViewSentMeetings = () => {
 
     const q = value.toLowerCase()
     
-    // Filtrar por disponibilidad, estado y luego por profesional
     const meetingsByStatus = meetings.filter(meeting => {
       return meeting.available === true && getStatusCategory(meeting.status) === activeTab
     })
@@ -123,7 +124,7 @@ const ViewSentMeetings = () => {
       case 0: return 'pending'    // Pendiente
       case 1: return 'accepted'   // Aceptada
       case 2: return 'rejected'   // Rechazada
-      case 3: return 'accepted'   // Finalizada (se muestra en aceptadas)
+      case 3: return 'rejected'   // Finalizada (ahora se muestra en rechazadas/oculta)
       case 4: return 'rejected'   // Cancelada (se muestra en rechazadas)
       default: return 'pending'
     }
@@ -131,7 +132,7 @@ const ViewSentMeetings = () => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab)
-    setQuery('') // Limpiar búsqueda al cambiar de pestaña
+    setQuery('')
     filterMeetingsByStatus(meetings, tab)
   }
 
@@ -159,27 +160,71 @@ const ViewSentMeetings = () => {
     return `${formattedDate}, ${formattedTime} hs`
   }
 
+  // Verificar si se puede finalizar la meeting (después de la hora pactada)
+  const canFinalizeMeeting = (meetingDate) => {
+    if (!meetingDate) return false
+    const now = new Date()
+    const meetingTime = new Date(meetingDate)
+    return now >= meetingTime
+  }
+
   const handleCancel = (meeting) => {
     setMeetingToCancel(meeting)
     setShowCancelModal(true)
   }
 
+  const handleFinalize = (meeting) => {
+    if (!canFinalizeMeeting(meeting.meetingDate)) {
+      showToast('Solo se puede finalizar la meeting después de la hora pactada', 'warning')
+      return
+    }
+    setMeetingToFinalize(meeting)
+    setShowFinalizeModal(true)
+  }
+
   const confirmCancel = async () => {
-    // Aquí implementarías la lógica para cancelar la meeting
-    // Por ahora solo mostramos un toast
-    showToast('Funcionalidad de cancelar meeting próximamente', 'info')
+    if (!meetingToCancel) return
+
+    try {
+      const result = await CancelMeeting(meetingToCancel.id, token)
+      
+      if (result.success) {
+        showToast('Meeting cancelada exitosamente', 'success')
+        // Recargar las meetings
+        await fetchMeetings()
+      } else {
+        showToast(result.msg || 'Error al cancelar la meeting', 'error')
+      }
+    } catch (error) {
+      showToast('Error de conexión con el servidor', 'error')
+    }
+
     setShowCancelModal(false)
     setMeetingToCancel(null)
   }
 
-  const handleFinalize = async (meeting) => {
-    // Aquí implementarías la lógica para finalizar la meeting
-    // Por ahora solo mostramos un toast
-    showToast('Funcionalidad de finalizar meeting próximamente', 'info')
+  const confirmFinalize = async () => {
+    if (!meetingToFinalize) return
+
+    try {
+      const result = await FinalizeMeeting(meetingToFinalize.id, token)
+      
+      if (result.success) {
+        showToast('Meeting finalizada exitosamente', 'success')
+        // Recargar las meetings
+        await fetchMeetings()
+      } else {
+        showToast(result.msg || 'Error al finalizar la meeting', 'error')
+      }
+    } catch (error) {
+      showToast('Error de conexión con el servidor', 'error')
+    }
+
+    setShowFinalizeModal(false)
+    setMeetingToFinalize(null)
   }
 
   const getTabCounts = () => {
-    // Contar solo meetings disponibles
     const availableMeetings = meetings.filter(m => m.available === true)
     return {
       pending: availableMeetings.filter(m => getStatusCategory(m.status) === 'pending').length,
@@ -255,6 +300,8 @@ const ViewSentMeetings = () => {
         ) : (
           filtered.map(meeting => {
             const professional = getProfessionalInfo(meeting.professionalId)
+            const canFinalize = canFinalizeMeeting(meeting.meetingDate)
+            
             return (
               <Col md={6} key={meeting.id} className="mb-4">
                 <Card className="card card-meeting">
@@ -286,14 +333,25 @@ const ViewSentMeetings = () => {
                           Cancelar
                         </Button>
                       )}
-                      {meeting.status === 1 && ( // Solo para meetings aceptadas
-                        <Button 
-                          variant="success" 
-                          className="btn-finalize"
-                          onClick={() => handleFinalize(meeting)}
-                        >
-                          Finalizar
-                        </Button>
+                      {meeting.status === 1 && ( // Para meetings aceptadas
+                        <>
+                          <Button 
+                            variant="danger" 
+                            className="btn-cancel"
+                            onClick={() => handleCancel(meeting)}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            variant="success" 
+                            className="btn-finalize"
+                            onClick={() => handleFinalize(meeting)}
+                            disabled={!canFinalize}
+                            title={!canFinalize ? 'Solo se puede finalizar después de la hora pactada' : 'Finalizar meeting'}
+                          >
+                            Finalizar
+                          </Button>
+                        </>
                       )}
                     </div>
                   </Card.Body>
@@ -328,6 +386,34 @@ const ViewSentMeetings = () => {
           </Button>
           <Button variant="danger" onClick={confirmCancel}>
             Sí, cancelar meeting
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de confirmación para finalizar meeting */}
+      <Modal show={showFinalizeModal} onHide={() => setShowFinalizeModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar finalización</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            ¿Estás seguro que querés finalizar esta meeting con{' '}
+            <strong>
+              {meetingToFinalize && getProfessionalInfo(meetingToFinalize.professionalId) ? 
+                `${getProfessionalInfo(meetingToFinalize.professionalId).firstName} ${getProfessionalInfo(meetingToFinalize.professionalId).lastName}` : 
+                'este profesional'}
+            </strong>?
+          </p>
+          <p className="text-info">
+            <small>Esto marcará el trabajo como completado.</small>
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowFinalizeModal(false)}>
+            No, mantener
+          </Button>
+          <Button variant="success" onClick={confirmFinalize}>
+            Sí, finalizar meeting
           </Button>
         </Modal.Footer>
       </Modal>

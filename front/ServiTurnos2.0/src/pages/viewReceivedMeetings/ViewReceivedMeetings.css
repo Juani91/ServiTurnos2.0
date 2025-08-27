@@ -1,0 +1,104 @@
+.view-received-meetings {
+  align-self: flex-start;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.view-received-meetings .card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: none;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 1.5rem;
+  min-height: 280px;
+  height: auto;
+}
+
+.view-received-meetings .card-img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 100px;
+  margin-right: 24px;
+}
+
+.view-received-meetings .card-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 200px;
+}
+
+.card-header-section {
+  margin-bottom: 1rem;
+}
+
+.view-received-meetings .card-title {
+  font-size: 1.3rem;
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+}
+
+.customer-details {
+  color: #6c757d;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.customer-location {
+  font-weight: 600; 
+}
+
+.customer-phone {
+  font-weight: 400;
+}
+
+.view-received-meetings .card-text {
+  margin-bottom: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  flex-grow: 1;
+  line-height: 1.5;
+}
+
+.view-received-meetings .btn-accept {
+  border-radius: 8px;
+  padding: 8px 24px;
+}
+
+.view-received-meetings .btn-reject {
+  border-radius: 8px;
+  padding: 8px 24px;
+}
+
+.card-btn-container {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.meeting-status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.card-meeting {
+  background-color: #f8f9fa !important;
+}
+
+.view-received-meetings h2 {
+  color: #495057;
+  font-weight: 600;
+}

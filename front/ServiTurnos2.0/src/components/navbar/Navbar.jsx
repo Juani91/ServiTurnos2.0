@@ -44,12 +44,12 @@ const Navbar = () => {
           <Nav.Link
             onClick={() => {
               if (userType === 'Customer') navigate('/buscar-profesionales');
-              else if (userType === 'Professional') navigate('/solicitudes');
+              else if (userType === 'Professional') navigate('/ver-solicitudes');
               else if (userType === 'Admin') navigate('/ver-usuarios');
             }}
             className={`buttons ${
               (userType === 'Customer' && isActive('/buscar-profesionales')) ||
-              (userType === 'Professional' && isActive('/solicitudes')) ||
+              (userType === 'Professional' && isActive('/ver-solicitudes')) ||
               (userType === 'Admin' && isActive('/ver-usuarios'))
                 ? 'active' : ''
             }`}
@@ -64,12 +64,12 @@ const Navbar = () => {
           <Nav.Link
             onClick={() => {
               if (userType === 'Customer') navigate('/solicitudes-enviadas');
-              else if (userType === 'Professional') navigate('/citas');
+              else if (userType === 'Professional') navigate('/ver-aceptadas');
               else if (userType === 'Admin') navigate('/ver-citas');
             }}
             className={`buttons ${
               (userType === 'Customer' && isActive('/solicitudes-enviadas')) ||
-              (userType === 'Professional' && isActive('/citas')) ||
+              (userType === 'Professional' && isActive('/ver-aceptadas')) ||
               (userType === 'Admin' && isActive('/ver-citas'))
                 ? 'active' : ''
             }`}

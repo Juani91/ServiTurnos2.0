@@ -111,7 +111,7 @@ namespace Web.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = "AdminOrProfessional")]
         public IActionResult GetAllCustomers()
         {
             try

@@ -7,6 +7,8 @@ import Profile from '../pages/profile/Profile'
 import SearchProfessionals from '../pages/searchProfessionals/searchProfessionals'
 import SearchCustProfess from '../pages/searchCustProfess/SearchCustProfess'
 import ViewSentMeetings from '../pages/viewSentMeetings/ViewSentMeetings'
+import ViewReceivedMeetings from '../pages/viewReceivedMeetings/ViewReceivedMeetings'
+import ViewAceptedMeetings from '../pages/viewAceptedMeetings/ViewAceptedMeetings'
 import NotFound from '../pages/notFound/NotFound'
 
 // Importamos los componentes protectores
@@ -46,6 +48,25 @@ const Routes = () => {
             <CustomerProtected>
               <ViewSentMeetings />
             </CustomerProtected>
+          } 
+        />
+
+        {/* Rutas solo para Professionals */}
+        <Route 
+          path="/ver-solicitudes" 
+          element={
+            <ProfessionalProtected>
+              <ViewReceivedMeetings />
+            </ProfessionalProtected>
+          } 
+        />
+
+        <Route 
+          path="/ver-aceptadas" 
+          element={
+            <ProfessionalProtected>
+              <ViewAceptedMeetings />
+            </ProfessionalProtected>
           } 
         />
 
