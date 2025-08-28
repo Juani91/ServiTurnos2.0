@@ -45,9 +45,11 @@ const ViewAceptedMeetings = () => {
     ])
 
     if (meetingsRes.success && customersRes.success) {
-      setMeetings(meetingsRes.data)
+      // Filtrar solo meetings que estén disponibles (Available = true)
+      const availableMeetings = meetingsRes.data.filter(meeting => meeting.available === true)
+      setMeetings(availableMeetings)
       setCustomers(customersRes.data)
-      setFiltered(meetingsRes.data)
+      setFiltered(availableMeetings)
     } else {
       showToast('Error al cargar las citas aceptadas', 'error')
     }
@@ -67,9 +69,10 @@ const ViewAceptedMeetings = () => {
     }
 
     const q = value.toLowerCase()
+    // Filtrar solo meetings disponibles en la búsqueda también
     const results = meetings.filter(meeting => {
       const customer = getCustomerInfo(meeting.customerId)
-      return customer && (
+      return meeting.available === true && customer && (
         customer.firstName?.toLowerCase().includes(q) ||
         customer.lastName?.toLowerCase().includes(q)
       )

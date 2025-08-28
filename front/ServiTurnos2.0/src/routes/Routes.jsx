@@ -9,6 +9,7 @@ import SearchCustProfess from '../pages/searchCustProfess/SearchCustProfess'
 import ViewSentMeetings from '../pages/viewSentMeetings/ViewSentMeetings'
 import ViewReceivedMeetings from '../pages/viewReceivedMeetings/ViewReceivedMeetings'
 import ViewAceptedMeetings from '../pages/viewAceptedMeetings/ViewAceptedMeetings'
+import ViewAllMeetingsAsAdmin from '../pages/viewAllMeetingsAsAdmin/ViewAllMeetingsAsAdmin'
 import NotFound from '../pages/notFound/NotFound'
 
 // Importamos los componentes protectores
@@ -80,7 +81,14 @@ const Routes = () => {
           }
         />
 
-        {/* Después sumamos acá: /solicitudes (Professional), /citas (Customer/Professional), /ver-citas (Admin), etc. */}
+        <Route 
+          path="/ver-citas" 
+          element={
+            <AdminProtected>
+              <ViewAllMeetingsAsAdmin />
+            </AdminProtected>
+          }
+        />
 
       </Route>
 

@@ -196,15 +196,120 @@ export const MeetingsProvider = ({ children }) => {
     }
   };
 
+  const GetAllMeetingsByStatus = async (status, token) => {
+    try {
+      const response = await fetch(`https://localhost:7286/api/Meeting/all-status/${status}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        },
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        return { success: false, msg: text };
+      }
+
+      const data = await response.json();
+      return { success: true, data };
+
+    } catch (error) {
+      return { success: false, msg: 'Error de conexión con el servidor.' };
+    }
+  };
+
+  const HardDeleteMeeting = async (meetingId, token) => {
+    try {
+      const response = await fetch(`https://localhost:7286/api/Meeting/hard/${meetingId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        },
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        return { success: false, msg: text };
+      }
+
+      const text = await response.text();
+      return { success: true, msg: text };
+
+    } catch (error) {
+      return { success: false, msg: 'Error de conexión con el servidor.' };
+    }
+  };
+
+  const SoftDeleteMeeting = async (meetingId, token) => {
+    try {
+      const response = await fetch(`https://localhost:7286/api/Meeting/soft/${meetingId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        },
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        return { success: false, msg: text };
+      }
+
+      const text = await response.text();
+      return { success: true, msg: text };
+
+    } catch (error) {
+      return { success: false, msg: 'Error de conexión con el servidor.' };
+    }
+  };
+
+  const UpdateMeeting = async (meetingId, data, token) => {
+    const payload = {
+      customerId: data.customerId,
+      professionalId: data.professionalId,
+      meetingDate: data.meetingDate,
+      jobInfo: data.jobInfo
+    };
+
+    try {
+      const response = await fetch(`https://localhost:7286/api/Meeting/${meetingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'accept': '*/*'
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        return { success: false, msg: text };
+      }
+
+      const text = await response.text();
+      return { success: true, msg: text };
+
+    } catch (error) {
+      return { success: false, msg: 'Error de conexión con el servidor.' };
+    }
+  };
+
   const data = {
     AddMeeting,
     GetAllMeetingsByCustomer,
     GetPendingMeetings,
     GetAcceptedMeetings,
+    GetAllMeetingsByStatus,
     AcceptMeeting,
     RejectMeeting,
     CancelMeeting,
-    FinalizeMeeting
+    FinalizeMeeting,
+    HardDeleteMeeting,
+    SoftDeleteMeeting,
+    UpdateMeeting
   };
 
   return <MeetingsContext.Provider value={data}>{children}</MeetingsContext.Provider>;
