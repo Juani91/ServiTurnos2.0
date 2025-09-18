@@ -1,87 +1,37 @@
-.view-received-meetings {
+.received-meetings-container {
   align-self: flex-start;
   width: 100%;
-  margin-top: 1rem;
 }
 
-.view-received-meetings .card {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+.received-meeting-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: none;
+  border-radius: 12px;
   display: flex;
   flex-direction: row;
   align-items: stretch;
   padding: 1.5rem;
   min-height: 280px;
-  height: auto;
+  background-color: #f8f9fa;
 }
 
-.view-received-meetings .card-img {
+.meeting-avatar {
   width: 150px;
   height: 150px;
   object-fit: cover;
-  border-radius: 100px;
+  border-radius: 50%;
   margin-right: 24px;
 }
 
-.view-received-meetings .card-body {
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 100%;
-  min-height: 200px;
-}
-
-.card-header-section {
-  margin-bottom: 1rem;
-}
-
-.view-received-meetings .card-title {
+.meeting-title {
   font-size: 1.3rem;
   margin-bottom: 0.3rem;
   font-weight: 600;
 }
 
 .customer-details {
-  color: #6c757d;
   font-size: 1rem;
   margin-bottom: 0.5rem;
-}
-
-.customer-location {
-  font-weight: 600; 
-}
-
-.customer-phone {
-  font-weight: 400;
-}
-
-.view-received-meetings .card-text {
-  margin-bottom: 1rem;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
-  flex-grow: 1;
-  line-height: 1.5;
-}
-
-.view-received-meetings .btn-accept {
-  border-radius: 8px;
-  padding: 8px 24px;
-}
-
-.view-received-meetings .btn-reject {
-  border-radius: 8px;
-  padding: 8px 24px;
-}
-
-.card-btn-container {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  gap: 8px;
-  margin-top: auto;
 }
 
 .meeting-status-badge {
@@ -94,11 +44,27 @@
   color: #856404;
 }
 
-.card-meeting {
-  background-color: #f8f9fa !important;
+.btn-action {
+  border-radius: 8px;
+  padding: 8px 24px;
 }
 
-.view-received-meetings h2 {
-  color: #495057;
-  font-weight: 600;
+@media (max-width: 768px) {
+  .received-meeting-card {
+    flex-direction: column;
+    text-align: center;
+    min-height: auto;
+  }
+  
+  .meeting-avatar {
+    width: 120px;
+    height: 120px;
+    margin-right: 0;
+    margin-bottom: 1rem;
+    align-self: center;
+  }
+  
+  .meeting-title {
+    font-size: 1.1rem;
+  }
 }

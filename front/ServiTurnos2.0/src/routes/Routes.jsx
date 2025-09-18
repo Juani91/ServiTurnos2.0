@@ -1,5 +1,5 @@
 import { Routes as ReactRoutes, Route } from 'react-router-dom'
-import Login from '../pages/Login/Login'
+import Login from '../pages/login/Login'
 import Register from '../pages/register/Register'
 import Home from '../pages/home/Home'
 import Layout from '../components/layout/Layout' // 🆕 importamos el layout
@@ -95,7 +95,7 @@ const Routes = () => {
       {/* Ruta específica para 404 */}
       <Route path="/404" element={<NotFound />} />
 
-      {/* Ruta catch-all para páginas no encontradas - DEBE IR AL FINAL */}
+      {/* Ruta catch-all para páginas no encontradas */}
       <Route path="*" element={<NotFound />} />
 
     </ReactRoutes>

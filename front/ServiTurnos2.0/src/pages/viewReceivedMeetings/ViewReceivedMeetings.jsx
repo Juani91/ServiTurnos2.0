@@ -8,11 +8,10 @@ import { useUsers } from '../../services/usersContext/UsersContext'
 import { useToast } from '../../context/toastContext/ToastContext'
 import './ViewReceivedMeetings.css'
 
-// Función para decodificar el token
 const parseJwt = (token) => {
   try {
     return JSON.parse(atob(token.split('.')[1]))
-  } catch (e) {
+  } catch {
     return null
   }
 }
@@ -22,17 +21,16 @@ const ViewReceivedMeetings = () => {
   const [meetings, setMeetings] = useState([])
   const [customers, setCustomers] = useState([])
   const [filtered, setFiltered] = useState([])
-  const [showAcceptModal, setShowAcceptModal] = useState(false)
-  const [showRejectModal, setShowRejectModal] = useState(false)
-  const [meetingToAccept, setMeetingToAccept] = useState(null)
-  const [meetingToReject, setMeetingToReject] = useState(null)
+  const [modals, setModals] = useState({
+    accept: { show: false, meeting: null },
+    reject: { show: false, meeting: null }
+  })
 
   const { token } = useAuth()
   const { GetPendingMeetings, AcceptMeeting, RejectMeeting } = useMeetings()
   const { GetAllCustomers } = useUsers()
   const { showToast } = useToast()
 
-  // Obtener el ID del profesional del token
   const decoded = token ? parseJwt(token) : null
   const professionalId = decoded?.Id
 
@@ -45,7 +43,6 @@ const ViewReceivedMeetings = () => {
     ])
 
     if (meetingsRes.success && customersRes.success) {
-      // Filtrar solo meetings que estén disponibles (Available = true)
       const availableMeetings = meetingsRes.data.filter(meeting => meeting.available === true)
       setMeetings(availableMeetings)
       setCustomers(customersRes.data)
@@ -55,9 +52,7 @@ const ViewReceivedMeetings = () => {
     }
   }
 
-  useEffect(() => {
-    fetchMeetings()
-  }, [professionalId, token])
+  useEffect(() => { fetchMeetings() }, [professionalId, token])
 
   const handleInputChange = (e) => {
     const value = e.target.value
@@ -69,7 +64,6 @@ const ViewReceivedMeetings = () => {
     }
 
     const q = value.toLowerCase()
-    // Filtrar solo meetings disponibles en la búsqueda también
     const results = meetings.filter(meeting => {
       const customer = getCustomerInfo(meeting.customerId)
       return meeting.available === true && customer && (
@@ -80,46 +74,34 @@ const ViewReceivedMeetings = () => {
     setFiltered(results)
   }
 
-  const getCustomerInfo = (customerId) => {
-    return customers.find(customer => customer.id === customerId)
-  }
+  const getCustomerInfo = (customerId) => customers.find(customer => customer.id === customerId)
 
   const formatDateTime = (dateString) => {
     if (!dateString) return 'No especificada'
-    
     const date = new Date(dateString)
-    const dateOptions = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }
-    const timeOptions = {
-      hour: '2-digit',
-      minute: '2-digit'
-    }
-    
-    const formattedDate = date.toLocaleDateString('es-ES', dateOptions)
-    const formattedTime = date.toLocaleTimeString('es-ES', timeOptions)
-    
+    const formattedDate = date.toLocaleDateString('es-ES', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    })
+    const formattedTime = date.toLocaleTimeString('es-ES', {
+      hour: '2-digit', minute: '2-digit'
+    })
     return `${formattedDate}, ${formattedTime} hs`
   }
 
-  const handleAccept = (meeting) => {
-    setMeetingToAccept(meeting)
-    setShowAcceptModal(true)
+  const openModal = (type, meeting) => {
+    setModals(prev => ({ ...prev, [type]: { show: true, meeting } }))
   }
 
-  const handleReject = (meeting) => {
-    setMeetingToReject(meeting)
-    setShowRejectModal(true)
+  const closeModal = (type) => {
+    setModals(prev => ({ ...prev, [type]: { show: false, meeting: null } }))
   }
 
   const confirmAccept = async () => {
-    if (!meetingToAccept) return
+    const meeting = modals.accept.meeting
+    if (!meeting) return
 
     try {
-      const result = await AcceptMeeting(meetingToAccept.id, token)
-      
+      const result = await AcceptMeeting(meeting.id, token)
       if (result.success) {
         showToast('Solicitud aceptada exitosamente', 'success')
         await fetchMeetings()
@@ -129,17 +111,15 @@ const ViewReceivedMeetings = () => {
     } catch (error) {
       showToast('Error de conexión con el servidor', 'error')
     }
-
-    setShowAcceptModal(false)
-    setMeetingToAccept(null)
+    closeModal('accept')
   }
 
   const confirmReject = async () => {
-    if (!meetingToReject) return
+    const meeting = modals.reject.meeting
+    if (!meeting) return
 
     try {
-      const result = await RejectMeeting(meetingToReject.id, token)
-      
+      const result = await RejectMeeting(meeting.id, token)
       if (result.success) {
         showToast('Solicitud rechazada exitosamente', 'success')
         await fetchMeetings()
@@ -149,14 +129,99 @@ const ViewReceivedMeetings = () => {
     } catch (error) {
       showToast('Error de conexión con el servidor', 'error')
     }
+    closeModal('reject')
+  }
 
-    setShowRejectModal(false)
-    setMeetingToReject(null)
+  const renderMeetingCard = (meeting) => {
+    const customer = getCustomerInfo(meeting.customerId)
+    
+    return (
+      <Col md={6} key={meeting.id} className="mb-4">
+        <Card className="received-meeting-card">
+          <Card.Img
+            variant="left"
+            src={customer?.imageURL || '/images/NoImage.webp'}
+            alt="Foto cliente"
+            className="meeting-avatar"
+          />
+          <Card.Body className="p-0 d-flex flex-column justify-content-between">
+            <div className="mb-3">
+              <Card.Title className="meeting-title">
+                {customer ? `${customer.firstName} ${customer.lastName}` : 'Cliente no encontrado'}
+                <span className="meeting-status-badge ms-2">Pendiente</span>
+              </Card.Title>
+              {customer && (
+                <div className="customer-details text-muted">
+                  {customer.city && <span className="fw-semibold">{customer.city}</span>}
+                  {customer.phoneNumber && <span> - {customer.phoneNumber}</span>}
+                </div>
+              )}
+            </div>
+            
+            <Card.Text className="flex-grow-1 lh-base mb-3">
+              <strong>Fecha:</strong> {formatDateTime(meeting.meetingDate)}<br />
+              <strong>Descripción:</strong> {meeting.jobInfo || 'Sin descripción'}
+            </Card.Text>
+            
+            <div className="d-flex justify-content-end gap-2 mt-auto">
+              <Button 
+                variant="danger" 
+                className="btn-action"
+                onClick={() => openModal('reject', meeting)}
+              >
+                Rechazar
+              </Button>
+              <Button 
+                variant="success" 
+                className="btn-action"
+                onClick={() => openModal('accept', meeting)}
+              >
+                Aceptar
+              </Button>
+            </div>
+          </Card.Body>
+        </Card>
+      </Col>
+    )
+  }
+
+  const renderConfirmationModal = (type, title, message, confirmText, confirmVariant, onConfirm, warningType = 'info') => {
+    const meeting = modals[type].meeting
+    const customerName = meeting && getCustomerInfo(meeting.customerId) 
+      ? `${getCustomerInfo(meeting.customerId).firstName} ${getCustomerInfo(meeting.customerId).lastName}`
+      : 'este cliente'
+
+    return (
+      <Modal show={modals[type].show} onHide={() => closeModal(type)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{message.replace('{customerName}', customerName)}</p>
+          <p className={`text-${warningType}`}>
+            <small>
+              {type === 'accept' 
+                ? 'Al aceptar, te comprometes a realizar el trabajo en la fecha y hora pactada.'
+                : 'Esta acción no se puede deshacer.'
+              }
+            </small>
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => closeModal(type)}>
+            Cancelar
+          </Button>
+          <Button variant={confirmVariant} onClick={onConfirm}>
+            {confirmText}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    )
   }
 
   return (
-    <Container className="view-received-meetings">
-      <Row className="justify-content-center mb-4">
+    <Container className="received-meetings-container mt-4">
+      <Row className="justify-content-center">
         <Col md={6}>
           <Input
             type="text"
@@ -175,116 +240,29 @@ const ViewReceivedMeetings = () => {
             </p>
           </Col>
         ) : (
-          filtered.map(meeting => {
-            const customer = getCustomerInfo(meeting.customerId)
-            
-            return (
-              <Col md={6} key={meeting.id} className="mb-4">
-                <Card className="card card-meeting">
-                  <Card.Img
-                    variant="left"
-                    src={customer?.imageURL || '/images/NoImage.webp'}
-                    alt="Foto cliente"
-                    className="card-img"
-                  />
-                  <Card.Body className="card-body">
-                    <div className="card-header-section">
-                      <Card.Title className="card-title">
-                        {customer ? `${customer.firstName} ${customer.lastName}` : 'Cliente no encontrado'}
-                        <span className="meeting-status-badge ms-2">
-                          Pendiente
-                        </span>
-                      </Card.Title>
-                      <div className="customer-details">
-                        {customer?.city && <span className="customer-location">{customer.city}</span>}
-                        {customer?.phoneNumber && <span className="customer-phone"> - {customer.phoneNumber}</span>}
-                      </div>
-                    </div>
-                    
-                    <Card.Text className="card-text">
-                      <strong>Fecha:</strong> {formatDateTime(meeting.meetingDate)}<br />
-                      <strong>Descripción:</strong> {meeting.jobInfo || 'Sin descripción'}
-                    </Card.Text>
-                    
-                    <div className="card-btn-container">
-                      <Button 
-                        variant="danger" 
-                        className="btn-reject"
-                        onClick={() => handleReject(meeting)}
-                      >
-                        Rechazar
-                      </Button>
-                      <Button 
-                        variant="success" 
-                        className="btn-accept"
-                        onClick={() => handleAccept(meeting)}
-                      >
-                        Aceptar
-                      </Button>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            )
-          })
+          filtered.map(renderMeetingCard)
         )}
       </Row>
 
-      {/* Modal de confirmación para aceptar solicitud */}
-      <Modal show={showAcceptModal} onHide={() => setShowAcceptModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmar aceptación</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            ¿Estás seguro que querés aceptar la solicitud de{' '}
-            <strong>
-              {meetingToAccept && getCustomerInfo(meetingToAccept.customerId) ? 
-                `${getCustomerInfo(meetingToAccept.customerId).firstName} ${getCustomerInfo(meetingToAccept.customerId).lastName}` : 
-                'este cliente'}
-            </strong>?
-          </p>
-          <p className="text-info">
-            <small>Al aceptar, te comprometes a realizar el trabajo en la fecha y hora pactada.</small>
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAcceptModal(false)}>
-            Cancelar
-          </Button>
-          <Button variant="success" onClick={confirmAccept}>
-            Sí, aceptar solicitud
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {renderConfirmationModal(
+        'accept',
+        'Confirmar aceptación',
+        '¿Estás seguro que querés aceptar la solicitud de {customerName}?',
+        'Sí, aceptar solicitud',
+        'success',
+        confirmAccept,
+        'info'
+      )}
 
-      {/* Modal de confirmación para rechazar solicitud */}
-      <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmar rechazo</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            ¿Estás seguro que querés rechazar la solicitud de{' '}
-            <strong>
-              {meetingToReject && getCustomerInfo(meetingToReject.customerId) ? 
-                `${getCustomerInfo(meetingToReject.customerId).firstName} ${getCustomerInfo(meetingToReject.customerId).lastName}` : 
-                'este cliente'}
-            </strong>?
-          </p>
-          <p className="text-warning">
-            <small>Esta acción no se puede deshacer.</small>
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowRejectModal(false)}>
-            Cancelar
-          </Button>
-          <Button variant="danger" onClick={confirmReject}>
-            Sí, rechazar solicitud
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {renderConfirmationModal(
+        'reject',
+        'Confirmar rechazo',
+        '¿Estás seguro que querés rechazar la solicitud de {customerName}?',
+        'Sí, rechazar solicitud',
+        'danger',
+        confirmReject,
+        'warning'
+      )}
     </Container>
   )
 }

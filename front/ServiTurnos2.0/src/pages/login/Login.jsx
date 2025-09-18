@@ -8,8 +8,10 @@ import { useToast } from '../../context/toastContext/ToastContext'
 import './Login.css'
 
 const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  })
 
   const { Login } = useAuth()
   const { showToast } = useToast()
@@ -23,49 +25,50 @@ const Login = () => {
     }
   }
 
+  const handleInputChange = (field) => (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    const result = await Login(email, password)
+    const result = await Login(formData.email, formData.password)
 
     if (!result.success) {
       showToast(result.msg, 'error')
       return
     }
 
-    const decoded = parseJwt(result.token)
-    const userType = decoded?.UserType
-
+    parseJwt(result.token) // Mantener para posible uso futuro
     navigate('/home')
   }
 
   return (
     <div className="login-page">
       <Container className="login-container">
-        <h2 className="login-title">Iniciar sesión</h2>
+        <h2 className="text-center mb-4">Iniciar sesión</h2>
         <Form onSubmit={handleSubmit}>
           <Input
             label="Email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleInputChange('email')}
             placeholder="Ingresá tu email"
           />
           <Input
             label="Contraseña"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleInputChange('password')}
             placeholder="Ingresá tu contraseña"
           />
-          <Button
-            type="submit"
-            variant="primary"
-            className="login-btn"
-          >
+          <Button type="submit" className="w-100 mt-3">
             Iniciar sesión
           </Button>
-          <div className="login-register">
+          <div className="text-center mt-3">
             <span>¿No tenés cuenta? </span>
             <Link to="/register">Registrarse</Link>
           </div>

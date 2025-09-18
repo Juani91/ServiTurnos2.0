@@ -8,22 +8,29 @@ import { useToast } from '../../context/toastContext/ToastContext'
 import './ViewAllMeetingsAsAdmin.css'
 import '../../components/navbar/Navbar.css'
 
-const professionMap = {
-  0: "Gasista",
-  1: "Electricista", 
-  2: "Plomero",
-  3: "Carpintero",
-  4: "Albañil",
-  5: "Refrigeración"
+const PROFESSION_MAP = {
+  0: "Gasista", 1: "Electricista", 2: "Plomero", 
+  3: "Carpintero", 4: "Albañil", 5: "Refrigeración"
 }
 
-const meetingStatusMap = {
-  0: "Pendiente",
-  1: "Aceptada",
-  2: "Rechazada",
-  3: "Finalizada",
-  4: "Cancelada"
+const STATUS_CONFIG = {
+  pending: { index: 0, label: 'Pendientes' },
+  accepted: { index: 1, label: 'Aceptadas' },
+  rejected: { index: 2, label: 'Rechazadas' },
+  finalized: { index: 3, label: 'Finalizadas' },
+  cancelled: { index: 4, label: 'Canceladas' }
 }
+
+const TIME_SLOTS = (() => {
+  const slots = []
+  for (let hour = 8; hour <= 18; hour++) {
+    for (let minute of [0, 30]) {
+      if (hour === 18 && minute === 30) break
+      slots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`)
+    }
+  }
+  return slots
+})()
 
 const ViewAllMeetingsAsAdmin = () => {
   const [query, setQuery] = useState('')
@@ -33,28 +40,15 @@ const ViewAllMeetingsAsAdmin = () => {
   const [filtered, setFiltered] = useState([])
   const [activeTab, setActiveTab] = useState('pending')
   const [meetingsCounts, setMeetingsCounts] = useState({
-    pending: 0,
-    accepted: 0,
-    rejected: 0,
-    finalized: 0,
-    cancelled: 0
+    pending: 0, accepted: 0, rejected: 0, finalized: 0, cancelled: 0
   })
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showStopModal, setShowStopModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [meetingToDelete, setMeetingToDelete] = useState(null)
-  const [meetingToStop, setMeetingToStop] = useState(null)
-  const [meetingToEdit, setMeetingToEdit] = useState(null)
-  const [editData, setEditData] = useState({
-    date: '',
-    time: '',
-    jobInfo: ''
+  const [modals, setModals] = useState({
+    delete: { show: false, meeting: null },
+    stop: { show: false, meeting: null },
+    edit: { show: false, meeting: null }
   })
-  const [originalEditData, setOriginalEditData] = useState({
-    date: '',
-    time: '',
-    jobInfo: ''
-  })
+  const [editData, setEditData] = useState({ date: '', time: '', jobInfo: '' })
+  const [originalEditData, setOriginalEditData] = useState({ date: '', time: '', jobInfo: '' })
 
   const { token } = useAuth()
   const { GetAllMeetingsByStatus, HardDeleteMeeting, SoftDeleteMeeting, UpdateMeeting } = useMeetings()
@@ -64,9 +58,7 @@ const ViewAllMeetingsAsAdmin = () => {
   const fetchMeetingsByStatus = async (status) => {
     try {
       const meetingsRes = await GetAllMeetingsByStatus(status, token)
-
       if (meetingsRes.success) {
-        // NO filtrar por available - mostrar todas las meetings
         setMeetings(meetingsRes.data)
         setFiltered(meetingsRes.data)
       } else {
@@ -81,7 +73,6 @@ const ViewAllMeetingsAsAdmin = () => {
     }
   }
 
-  // Función para obtener todos los conteos
   const fetchAllCounts = async () => {
     try {
       const [professionalsRes, customersRes] = await Promise.all([
@@ -94,44 +85,25 @@ const ViewAllMeetingsAsAdmin = () => {
         setCustomers(customersRes.data)
       }
 
-      // Obtener conteos para cada estado (TODAS las meetings, no solo available)
       const counts = {}
-      
       for (let status = 0; status <= 4; status++) {
         try {
           const result = await GetAllMeetingsByStatus(status, token)
-          if (result.success) {
-            const statusKey = ['pending', 'accepted', 'rejected', 'finalized', 'cancelled'][status]
-            counts[statusKey] = result.data.length // Contar todas, no solo available
-          }
+          const statusKey = Object.keys(STATUS_CONFIG)[status]
+          counts[statusKey] = result.success ? result.data.length : 0
         } catch (error) {
-          const statusKey = ['pending', 'accepted', 'rejected', 'finalized', 'cancelled'][status]
+          const statusKey = Object.keys(STATUS_CONFIG)[status]
           counts[statusKey] = 0
         }
       }
-
       setMeetingsCounts(counts)
     } catch (error) {
       console.error('Error fetching counts:', error)
     }
   }
 
-  // Cargar conteos al inicio
-  useEffect(() => {
-    fetchAllCounts()
-  }, [token])
-
-  // Cargar meetings del tab activo
-  useEffect(() => {
-    const statusMap = {
-      'pending': 0,
-      'accepted': 1,
-      'rejected': 2,
-      'finalized': 3,
-      'cancelled': 4
-    }
-    fetchMeetingsByStatus(statusMap[activeTab])
-  }, [activeTab, token])
+  useEffect(() => { fetchAllCounts() }, [token])
+  useEffect(() => { fetchMeetingsByStatus(STATUS_CONFIG[activeTab].index) }, [activeTab, token])
 
   const handleInputChange = (e) => {
     const value = e.target.value
@@ -143,7 +115,6 @@ const ViewAllMeetingsAsAdmin = () => {
     }
 
     const q = value.toLowerCase()
-    
     const results = meetings.filter(meeting => {
       const professional = getProfessionalInfo(meeting.professionalId)
       const customer = getCustomerInfo(meeting.customerId)
@@ -151,7 +122,7 @@ const ViewAllMeetingsAsAdmin = () => {
         (professional && (
           professional.firstName?.toLowerCase().includes(q) ||
           professional.lastName?.toLowerCase().includes(q) ||
-          professionMap[professional.profession]?.toLowerCase().includes(q)
+          PROFESSION_MAP[professional.profession]?.toLowerCase().includes(q)
         )) ||
         (customer && (
           customer.firstName?.toLowerCase().includes(q) ||
@@ -167,79 +138,55 @@ const ViewAllMeetingsAsAdmin = () => {
     setQuery('')
   }
 
-  const getProfessionalInfo = (professionalId) => {
-    return professionals.find(prof => prof.id === professionalId)
-  }
-
-  const getCustomerInfo = (customerId) => {
-    return customers.find(customer => customer.id === customerId)
-  }
+  const getProfessionalInfo = (id) => professionals.find(prof => prof.id === id)
+  const getCustomerInfo = (id) => customers.find(customer => customer.id === id)
 
   const formatDateTime = (dateString) => {
     if (!dateString) return 'No especificada'
-    
     const date = new Date(dateString)
-    const dateOptions = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }
-    const timeOptions = {
-      hour: '2-digit',
-      minute: '2-digit'
-    }
-    
-    const formattedDate = date.toLocaleDateString('es-ES', dateOptions)
-    const formattedTime = date.toLocaleTimeString('es-ES', timeOptions)
-    
+    const formattedDate = date.toLocaleDateString('es-ES', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    })
+    const formattedTime = date.toLocaleTimeString('es-ES', {
+      hour: '2-digit', minute: '2-digit'
+    })
     return `${formattedDate}, ${formattedTime} hs`
   }
 
-  const getEmptyMessage = () => {
-    switch (activeTab) {
-      case 'pending':
-        return 'No se encuentran meetings pendientes'
-      case 'accepted':
-        return 'No se encuentran meetings aceptadas'
-      case 'rejected':
-        return 'No se encuentran meetings rechazadas'
-      case 'finalized':
-        return 'No se encuentran meetings finalizadas'
-      case 'cancelled':
-        return 'No se encuentran meetings canceladas'
-      default:
-        return 'No se encontraron meetings'
+  const getEmptyMessage = () => `No se encuentran meetings ${STATUS_CONFIG[activeTab].label.toLowerCase()}`
+
+  const openModal = (type, meeting = null) => {
+    setModals(prev => ({ ...prev, [type]: { show: true, meeting } }))
+    
+    if (type === 'edit' && meeting) {
+      const meetingDate = new Date(meeting.meetingDate)
+      const initialData = {
+        date: meetingDate.toISOString().split('T')[0],
+        time: meetingDate.toTimeString().slice(0, 5),
+        jobInfo: meeting.jobInfo || ''
+      }
+      setEditData(initialData)
+      setOriginalEditData(initialData)
     }
   }
 
-  const handleHardDeleteClick = (meeting) => {
-    setMeetingToDelete(meeting)
-    setShowDeleteModal(true)
-  }
-
-  const handleSoftDeleteClick = (meeting) => {
-    setMeetingToStop(meeting)
-    setShowStopModal(true)
+  const closeModal = (type) => {
+    setModals(prev => ({ ...prev, [type]: { show: false, meeting: null } }))
+    if (type === 'edit') {
+      setEditData({ date: '', time: '', jobInfo: '' })
+      setOriginalEditData({ date: '', time: '', jobInfo: '' })
+    }
   }
 
   const confirmHardDelete = async () => {
-    if (!meetingToDelete) return
+    const meeting = modals.delete.meeting
+    if (!meeting) return
     
     try {
-      const result = await HardDeleteMeeting(meetingToDelete.id, token)
-      
+      const result = await HardDeleteMeeting(meeting.id, token)
       if (result.success) {
         showToast('Meeting eliminada permanentemente', 'success')
-        // Recargar las meetings del tab actual
-        const statusMap = {
-          'pending': 0,
-          'accepted': 1,
-          'rejected': 2,
-          'finalized': 3,
-          'cancelled': 4
-        }
-        await fetchMeetingsByStatus(statusMap[activeTab])
-        // Recargar los conteos
+        await fetchMeetingsByStatus(STATUS_CONFIG[activeTab].index)
         await fetchAllCounts()
       } else {
         showToast(result.msg || 'Error al eliminar la meeting', 'error')
@@ -247,91 +194,36 @@ const ViewAllMeetingsAsAdmin = () => {
     } catch (error) {
       showToast('Error de conexión con el servidor', 'error')
     } finally {
-      setShowDeleteModal(false)
-      setMeetingToDelete(null)
+      closeModal('delete')
     }
   }
 
   const confirmSoftDelete = async () => {
-    if (!meetingToStop) return
+    const meeting = modals.stop.meeting
+    if (!meeting) return
     
     try {
-      const result = await SoftDeleteMeeting(meetingToStop.id, token)
-      
+      const result = await SoftDeleteMeeting(meeting.id, token)
       if (result.success) {
-        const action = meetingToStop.available ? 'detenida' : 'restablecida'
+        const action = meeting.available ? 'detenida' : 'restablecida'
         showToast(`Meeting ${action} correctamente`, 'success')
-        // Recargar las meetings del tab actual
-        const statusMap = {
-          'pending': 0,
-          'accepted': 1,
-          'rejected': 2,
-          'finalized': 3,
-          'cancelled': 4
-        }
-        await fetchMeetingsByStatus(statusMap[activeTab])
-        // Recargar los conteos
+        await fetchMeetingsByStatus(STATUS_CONFIG[activeTab].index)
         await fetchAllCounts()
       } else {
-        const action = meetingToStop.available ? 'detener' : 'reestablecer'
+        const action = meeting.available ? 'detener' : 'reestablecer'
         showToast(result.msg || `Error al ${action} la meeting`, 'error')
       }
     } catch (error) {
       showToast('Error de conexión con el servidor', 'error')
     } finally {
-      setShowStopModal(false)
-      setMeetingToStop(null)
+      closeModal('stop')
     }
-  }
-
-  const handleCloseDeleteModal = () => {
-    setShowDeleteModal(false)
-    setMeetingToDelete(null)
-  }
-
-  const handleCloseStopModal = () => {
-    setShowStopModal(false)
-    setMeetingToStop(null)
-  }
-
-  const handleEditClick = (meeting) => {
-    setMeetingToEdit(meeting)
-    
-    // Extraer fecha y hora del meetingDate
-    const meetingDate = new Date(meeting.meetingDate)
-    const dateStr = meetingDate.toISOString().split('T')[0]
-    const timeStr = meetingDate.toTimeString().slice(0, 5)
-    
-    const initialData = {
-      date: dateStr,
-      time: timeStr,
-      jobInfo: meeting.jobInfo || ''
-    }
-    
-    setEditData(initialData)
-    setOriginalEditData(initialData) // Guardar los datos originales
-    setShowEditModal(true)
-  }
-
-  const handleCloseEditModal = () => {
-    setShowEditModal(false)
-    setMeetingToEdit(null)
-    setEditData({ date: '', time: '', jobInfo: '' })
-    setOriginalEditData({ date: '', time: '', jobInfo: '' })
   }
 
   const handleEditInputChange = (e) => {
     const { name, value } = e.target
-    
-    // Límite de caracteres para jobInfo
-    if (name === 'jobInfo' && value.length > 500) {
-      return
-    }
-    
-    setEditData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    if (name === 'jobInfo' && value.length > 500) return
+    setEditData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleUpdateMeeting = async () => {
@@ -345,7 +237,6 @@ const ViewAllMeetingsAsAdmin = () => {
       return
     }
 
-    // Verificar si hubo cambios comparando con los datos originales
     const hasChanges = (
       editData.date !== originalEditData.date ||
       editData.time !== originalEditData.time ||
@@ -354,35 +245,23 @@ const ViewAllMeetingsAsAdmin = () => {
 
     if (!hasChanges) {
       showToast('No se registraron cambios.', 'info')
-      handleCloseEditModal()
+      closeModal('edit')
       return
     }
 
-    // Formar la fecha en formato ISO
-    const meetingDateTime = `${editData.date}T${editData.time}:00.000Z`
-
     const updateData = {
-      customerId: meetingToEdit.customerId,
-      professionalId: meetingToEdit.professionalId,
-      meetingDate: meetingDateTime,
+      customerId: modals.edit.meeting.customerId,
+      professionalId: modals.edit.meeting.professionalId,
+      meetingDate: `${editData.date}T${editData.time}:00.000Z`,
       jobInfo: editData.jobInfo.trim()
     }
 
     try {
-      const result = await UpdateMeeting(meetingToEdit.id, updateData, token)
-      
+      const result = await UpdateMeeting(modals.edit.meeting.id, updateData, token)
       if (result.success) {
         showToast('Meeting actualizada correctamente', 'success')
-        // Recargar las meetings del tab actual
-        const statusMap = {
-          'pending': 0,
-          'accepted': 1,
-          'rejected': 2,
-          'finalized': 3,
-          'cancelled': 4
-        }
-        await fetchMeetingsByStatus(statusMap[activeTab])
-        handleCloseEditModal()
+        await fetchMeetingsByStatus(STATUS_CONFIG[activeTab].index)
+        closeModal('edit')
       } else {
         showToast(result.msg || 'Error al actualizar la meeting', 'error')
       }
@@ -391,66 +270,148 @@ const ViewAllMeetingsAsAdmin = () => {
     }
   }
 
-  // Generate time options (every 30 minutes from 8:00 to 18:00)
-  const generateTimeOptions = () => {
-    const options = []
-    for (let hour = 8; hour <= 18; hour++) {
-      for (let minute of [0, 30]) {
-        if (hour === 18 && minute === 30) break // Stop at 18:00
-        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-        options.push(timeStr)
-      }
-    }
-    return options
+  const getMinDate = () => new Date().toISOString().split('T')[0]
+
+  const renderTabButton = (key, config) => (
+    <div 
+      key={key}
+      className={`buttons ${activeTab === key ? 'active' : ''}`}
+      onClick={() => handleTabChange(key)}
+      style={{ flex: 1, cursor: 'pointer' }}
+    >
+      {config.label} ({meetingsCounts[key]})
+    </div>
+  )
+
+  const renderMeetingCard = (meeting) => {
+    const professional = getProfessionalInfo(meeting.professionalId)
+    const customer = getCustomerInfo(meeting.customerId)
+    const canEdit = meeting.status === 0 || meeting.status === 1
+    const canStop = meeting.status === 0 || meeting.status === 1
+    
+    return (
+      <Col md={6} key={meeting.id} className="mb-4">
+        <Card className={`admin-meeting-card ${meeting.available ? 'available' : 'unavailable'}`}>
+          <div className="meeting-images">
+            <Card.Img
+              src={customer?.imageURL || '/images/NoImage.webp'}
+              alt="Foto cliente"
+              className="meeting-avatar"
+            />
+            <Card.Img
+              src={professional?.imageURL || '/images/NoImage.webp'}
+              alt="Foto profesional"
+              className="meeting-avatar"
+            />
+          </div>
+          <Card.Body className="p-0 d-flex flex-column justify-content-between">
+            <div className="mb-3">
+              <Card.Title className="meeting-title">
+                <div className="participant-info mb-2">
+                  <strong>Cliente:</strong> 
+                  <span className={customer?.available === false ? 'banned-user' : ''}>
+                    {customer ? ` ${customer.firstName} ${customer.lastName}` : ' Cliente no encontrado'}
+                  </span>
+                </div>
+                <div className="participant-info">
+                  <strong>Profesional:</strong> 
+                  <span className={professional?.available === false ? 'banned-user' : ''}>
+                    {professional ? ` ${professional.firstName} ${professional.lastName}` : ' Profesional no encontrado'}
+                  </span>
+                  <span className="profession-badge ms-2">
+                    {professional ? PROFESSION_MAP[professional.profession] || 'No especificada' : '-'}
+                  </span>
+                </div>
+              </Card.Title>
+            </div>
+            
+            <Card.Text className="flex-grow-1 lh-base mb-3">
+              <strong>Fecha:</strong> {formatDateTime(meeting.meetingDate)}<br />
+              <strong>Descripción:</strong> {meeting.jobInfo || 'Sin descripción'}
+            </Card.Text>
+            
+            <div className="d-flex justify-content-end gap-2 mt-auto">
+              {canEdit && (
+                <Button 
+                  variant="info"
+                  size="sm"
+                  onClick={() => openModal('edit', meeting)}
+                  className="btn-action-admin"
+                >
+                  Editar
+                </Button>
+              )}
+              {canStop && (
+                <Button 
+                  variant={meeting.available ? "warning" : "success"}
+                  size="sm"
+                  onClick={() => openModal('stop', meeting)}
+                  className="btn-action-admin"
+                >
+                  {meeting.available ? 'Detener' : 'Reestablecer'}
+                </Button>
+              )}
+              <Button 
+                variant="danger" 
+                size="sm"
+                onClick={() => openModal('delete', meeting)}
+                className="btn-action-admin"
+              >
+                Eliminar
+              </Button>
+            </div>
+          </Card.Body>
+        </Card>
+      </Col>
+    )
   }
 
-  // Get minimum date (today)
-  const getMinDate = () => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
+  const renderConfirmationModal = (type, title, confirmText, confirmVariant, onConfirm) => {
+    const meeting = modals[type].meeting
+    const customerName = meeting && getCustomerInfo(meeting.customerId) 
+      ? `${getCustomerInfo(meeting.customerId).firstName} ${getCustomerInfo(meeting.customerId).lastName}`
+      : 'Cliente desconocido'
+    const professionalName = meeting && getProfessionalInfo(meeting.professionalId)
+      ? `${getProfessionalInfo(meeting.professionalId).firstName} ${getProfessionalInfo(meeting.professionalId).lastName}`
+      : 'Profesional desconocido'
+
+    return (
+      <Modal show={modals[type].show} onHide={() => closeModal(type)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            ¿Estás seguro que querés {type === 'delete' ? 'eliminar permanentemente' : 
+            (meeting?.available ? 'detener' : 'reestablecer')} esta meeting entre{' '}
+            <strong>{customerName}</strong> y <strong>{professionalName}</strong>?
+          </p>
+          <p className={type === 'delete' ? 'text-danger' : meeting?.available ? 'text-warning' : 'text-success'}>
+            <small>
+              {type === 'delete' ? 'Esta acción no se puede deshacer.' :
+               meeting?.available ? 'La meeting será marcada como no disponible.' : 
+               'La meeting será marcada como disponible nuevamente.'}
+            </small>
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => closeModal(type)}>
+            Cancelar
+          </Button>
+          <Button variant={confirmVariant} onClick={onConfirm}>
+            {confirmText}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    )
   }
 
   return (
-    <Container className="view-all-meetings-admin">
-      {/* Pestañas para cambiar entre estados de meetings */}
+    <Container className="admin-meetings-container mt-4">
       <Row className="justify-content-center mb-3">
         <Col md={12}>
           <div className="d-flex gap-2">
-            <div 
-              className={`buttons ${activeTab === 'pending' ? 'active' : ''}`}
-              onClick={() => handleTabChange('pending')}
-              style={{ flex: 1, cursor: 'pointer' }}
-            >
-              Pendientes ({meetingsCounts.pending})
-            </div>
-            <div 
-              className={`buttons ${activeTab === 'accepted' ? 'active' : ''}`}
-              onClick={() => handleTabChange('accepted')}
-              style={{ flex: 1, cursor: 'pointer' }}
-            >
-              Aceptadas ({meetingsCounts.accepted})
-            </div>
-            <div 
-              className={`buttons ${activeTab === 'rejected' ? 'active' : ''}`}
-              onClick={() => handleTabChange('rejected')}
-              style={{ flex: 1, cursor: 'pointer' }}
-            >
-              Rechazadas ({meetingsCounts.rejected})
-            </div>
-            <div 
-              className={`buttons ${activeTab === 'finalized' ? 'active' : ''}`}
-              onClick={() => handleTabChange('finalized')}
-              style={{ flex: 1, cursor: 'pointer' }}
-            >
-              Finalizadas ({meetingsCounts.finalized})
-            </div>
-            <div 
-              className={`buttons ${activeTab === 'cancelled' ? 'active' : ''}`}
-              onClick={() => handleTabChange('cancelled')}
-              style={{ flex: 1, cursor: 'pointer' }}
-            >
-              Canceladas ({meetingsCounts.cancelled})
-            </div>
+            {Object.entries(STATUS_CONFIG).map(([key, config]) => renderTabButton(key, config))}
           </div>
         </Col>
       </Row>
@@ -469,192 +430,38 @@ const ViewAllMeetingsAsAdmin = () => {
       <Row>
         {filtered.length === 0 ? (
           <Col>
-            <p className="text-center">
-              {getEmptyMessage()}
-            </p>
+            <p className="text-center">{getEmptyMessage()}</p>
           </Col>
         ) : (
-          filtered.map(meeting => {
-            const professional = getProfessionalInfo(meeting.professionalId)
-            const customer = getCustomerInfo(meeting.customerId)
-            
-            return (
-              <Col md={6} key={meeting.id} className="mb-4">
-                <Card className={`card ${meeting.available ? 'card-meeting-available' : 'card-meeting-unavailable'}`}>
-                  <div className="card-images-container">
-                    <Card.Img
-                      src={customer?.imageURL || '/images/NoImage.webp'}
-                      alt="Foto cliente"
-                      className="card-img customer-img"
-                    />
-                    <Card.Img
-                      src={professional?.imageURL || '/images/NoImage.webp'}
-                      alt="Foto profesional"
-                      className="card-img professional-img"
-                    />
-                  </div>
-                  <Card.Body className="card-body">
-                    <Card.Title className="card-title">
-                      <div className="names-container">
-                        <div className="customer-info">
-                          <strong>Cliente:</strong> 
-                          <span className={customer && customer.available === false ? 'banned-user' : ''}>
-                            {customer ? `${customer.firstName} ${customer.lastName}` : 'Cliente no encontrado'}
-                          </span>
-                        </div>
-                        <div className="professional-info">
-                          <strong>Profesional:</strong> 
-                          <span className={professional && professional.available === false ? 'banned-user' : ''}>
-                            {professional ? `${professional.firstName} ${professional.lastName}` : 'Profesional no encontrado'}
-                          </span>
-                          <span className="profession-badge ms-2">
-                            {professional ? professionMap[professional.profession] || 'No especificada' : '-'}
-                          </span>
-                        </div>
-                      </div>
-                    </Card.Title>
-                    <Card.Text className="card-text">
-                      <strong>Fecha:</strong> {formatDateTime(meeting.meetingDate)}<br />
-                      <strong>Descripción:</strong> {meeting.jobInfo || 'Sin descripción'}
-                    </Card.Text>
-                    <div className="card-actions">
-                      {/* Botón Editar solo para Pendientes (0) o Aceptadas (1) */}
-                      {(meeting.status === 0 || meeting.status === 1) && (
-                        <Button 
-                          variant="info"
-                          size="sm"
-                          onClick={() => handleEditClick(meeting)}
-                          className="edit-button me-2"
-                        >
-                          Editar
-                        </Button>
-                      )}
-                      {/* Solo mostrar botón Detener/Reestablecer para meetings Pendientes (0) o Aceptadas (1) */}
-                      {(meeting.status === 0 || meeting.status === 1) && (
-                        <Button 
-                          variant={meeting.available ? "warning" : "success"}
-                          size="sm"
-                          onClick={() => handleSoftDeleteClick(meeting)}
-                          className={`${meeting.available ? 'stop-button' : 'restore-button'} me-2`}
-                        >
-                          {meeting.available ? 'Detener' : 'Reestablecer'}
-                        </Button>
-                      )}
-                      <Button 
-                        variant="danger" 
-                        size="sm"
-                        onClick={() => handleHardDeleteClick(meeting)}
-                        className="delete-button"
-                      >
-                        Eliminar
-                      </Button>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            )
-          })
+          filtered.map(renderMeetingCard)
         )}
       </Row>
 
-      {/* Modal de confirmación para eliminar meeting */}
-      <Modal show={showDeleteModal} onHide={handleCloseDeleteModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmar eliminación</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            ¿Estás seguro que querés eliminar permanentemente esta meeting entre{' '}
-            <strong>
-              {meetingToDelete && getCustomerInfo(meetingToDelete.customerId) 
-                ? `${getCustomerInfo(meetingToDelete.customerId).firstName} ${getCustomerInfo(meetingToDelete.customerId).lastName}`
-                : 'Cliente desconocido'
-              }
-            </strong>
-            {' y '}
-            <strong>
-              {meetingToDelete && getProfessionalInfo(meetingToDelete.professionalId)
-                ? `${getProfessionalInfo(meetingToDelete.professionalId).firstName} ${getProfessionalInfo(meetingToDelete.professionalId).lastName}`
-                : 'Profesional desconocido'
-              }
-            </strong>?
-          </p>
-          <p className="text-danger">
-            <small>Esta acción no se puede deshacer.</small>
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseDeleteModal}>
-            Cancelar
-          </Button>
-          <Button variant="danger" onClick={confirmHardDelete}>
-            Sí, eliminar
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {renderConfirmationModal('delete', 'Confirmar eliminación', 'Sí, eliminar', 'danger', confirmHardDelete)}
+      
+      {renderConfirmationModal(
+        'stop', 
+        modals.stop.meeting?.available ? 'Confirmar detención' : 'Confirmar restablecimiento',
+        modals.stop.meeting?.available ? 'Sí, detener' : 'Sí, reestablecer',
+        modals.stop.meeting?.available ? 'warning' : 'success',
+        confirmSoftDelete
+      )}
 
-      {/* Modal de confirmación para detener/reestablecer meeting */}
-      <Modal show={showStopModal} onHide={handleCloseStopModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {meetingToStop?.available ? 'Confirmar detención' : 'Confirmar restablecimiento'}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            ¿Estás seguro que querés {meetingToStop?.available ? 'detener' : 'reestablecer'} esta meeting entre{' '}
-            <strong>
-              {meetingToStop && getCustomerInfo(meetingToStop.customerId) 
-                ? `${getCustomerInfo(meetingToStop.customerId).firstName} ${getCustomerInfo(meetingToStop.customerId).lastName}`
-                : 'Cliente desconocido'
-              }
-            </strong>
-            {' y '}
-            <strong>
-              {meetingToStop && getProfessionalInfo(meetingToStop.professionalId)
-                ? `${getProfessionalInfo(meetingToStop.professionalId).firstName} ${getProfessionalInfo(meetingToStop.professionalId).lastName}`
-                : 'Profesional desconocido'
-              }
-            </strong>?
-          </p>
-          <p className={meetingToStop?.available ? "text-warning" : "text-success"}>
-            <small>
-              {meetingToStop?.available 
-                ? 'La meeting será marcada como no disponible.' 
-                : 'La meeting será marcada como disponible nuevamente.'
-              }
-            </small>
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseStopModal}>
-            Cancelar
-          </Button>
-          <Button 
-            variant={meetingToStop?.available ? "warning" : "success"} 
-            onClick={confirmSoftDelete}
-          >
-            {meetingToStop?.available ? 'Sí, detener' : 'Sí, reestablecer'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Modal para editar meeting */}
-      <Modal show={showEditModal} onHide={handleCloseEditModal} centered>
+      <Modal show={modals.edit.show} onHide={() => closeModal('edit')} centered>
         <Modal.Header closeButton>
           <Modal.Title>Editar Meeting</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {meetingToEdit && (
+          {modals.edit.meeting && (
             <div className="mb-3">
               <h6>
-                {getCustomerInfo(meetingToEdit.customerId)?.firstName} {getCustomerInfo(meetingToEdit.customerId)?.lastName}
+                {getCustomerInfo(modals.edit.meeting.customerId)?.firstName} {getCustomerInfo(modals.edit.meeting.customerId)?.lastName}
                 {' y '}
-                {getProfessionalInfo(meetingToEdit.professionalId)?.firstName} {getProfessionalInfo(meetingToEdit.professionalId)?.lastName}
+                {getProfessionalInfo(modals.edit.meeting.professionalId)?.firstName} {getProfessionalInfo(modals.edit.meeting.professionalId)?.lastName}
               </h6>
               <p className="text-muted">
-                {getProfessionalInfo(meetingToEdit.professionalId) 
-                  ? professionMap[getProfessionalInfo(meetingToEdit.professionalId).profession] 
+                {getProfessionalInfo(modals.edit.meeting.professionalId) 
+                  ? PROFESSION_MAP[getProfessionalInfo(modals.edit.meeting.professionalId).profession] 
                   : 'Profesión desconocida'
                 }
               </p>
@@ -686,7 +493,7 @@ const ViewAllMeetingsAsAdmin = () => {
                     required
                   >
                     <option value="">Seleccionar hora</option>
-                    {generateTimeOptions().map(time => (
+                    {TIME_SLOTS.map(time => (
                       <option key={time} value={time}>{time}</option>
                     ))}
                   </Form.Select>
@@ -707,9 +514,7 @@ const ViewAllMeetingsAsAdmin = () => {
                 required
               />
               <div className="d-flex justify-content-between mt-1">
-                <small className="text-muted">
-                  Máximo 500 caracteres
-                </small>
+                <small className="text-muted">Máximo 500 caracteres</small>
                 <small className={`${editData.jobInfo.length > 400 ? 'text-warning' : 'text-muted'} ${editData.jobInfo.length >= 500 ? 'text-danger' : ''}`}>
                   {editData.jobInfo.length}/500
                 </small>
@@ -718,7 +523,7 @@ const ViewAllMeetingsAsAdmin = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseEditModal}>
+          <Button variant="secondary" onClick={() => closeModal('edit')}>
             Cancelar
           </Button>
           <Button variant="primary" onClick={handleUpdateMeeting}>

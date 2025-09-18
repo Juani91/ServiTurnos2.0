@@ -19,69 +19,68 @@ const Navbar = () => {
   const decoded = token ? parseJwt(token) : null;
   const userType = decoded?.UserType;
 
-  // Función para determinar si un botón está activo
   const isActive = (path) => location.pathname === path;
 
+  const navigationConfig = {
+    Customer: {
+      secondButton: { path: '/buscar-profesionales', label: 'Buscar Profesionales' },
+      thirdButton: { path: '/solicitudes-enviadas', label: 'Citas' }
+    },
+    Professional: {
+      secondButton: { path: '/ver-solicitudes', label: 'Solicitudes' },
+      thirdButton: { path: '/ver-aceptadas', label: 'Citas' }
+    },
+    Admin: {
+      secondButton: { path: '/ver-usuarios', label: 'Ver usuarios' },
+      thirdButton: { path: '/ver-citas', label: 'Citas' }
+    }
+  };
+
+  const config = navigationConfig[userType] || {};
+
+  const handleNavigation = (buttonType) => {
+    if (buttonType === 'profile') {
+      navigate('/profile');
+    } else if (buttonType === 'second' && config.secondButton) {
+      navigate(config.secondButton.path);
+    } else if (buttonType === 'third' && config.thirdButton) {
+      navigate(config.thirdButton.path);
+    }
+  };
+
   return (
+    <Nav fill className="w-100">
+      <Nav.Item className="flex-fill">
+        <Nav.Link
+          onClick={() => handleNavigation('profile')}
+          className={`buttons ${isActive('/profile') ? 'active' : ''}`}
+        >
+          Perfil
+        </Nav.Link>
+      </Nav.Item>
 
-    <div>
-
-      <Nav fill defaultActiveKey="#" style={{ width: '100%' }}>
-
-        <Nav.Item style={{ flex: 1 }}>
-
+      {config.secondButton && (
+        <Nav.Item className="flex-fill">
           <Nav.Link
-            onClick={() => {
-              navigate('/profile');
-            }}
-            className={`buttons ${isActive('/profile') ? 'active' : ''}`}
+            onClick={() => handleNavigation('second')}
+            className={`buttons ${isActive(config.secondButton.path) ? 'active' : ''}`}
           >
-            Perfil
+            {config.secondButton.label}
           </Nav.Link>
         </Nav.Item>
+      )}
 
-        <Nav.Item style={{ flex: 1 }}>
+      {config.thirdButton && (
+        <Nav.Item className="flex-fill">
           <Nav.Link
-            onClick={() => {
-              if (userType === 'Customer') navigate('/buscar-profesionales');
-              else if (userType === 'Professional') navigate('/ver-solicitudes');
-              else if (userType === 'Admin') navigate('/ver-usuarios');
-            }}
-            className={`buttons ${
-              (userType === 'Customer' && isActive('/buscar-profesionales')) ||
-              (userType === 'Professional' && isActive('/ver-solicitudes')) ||
-              (userType === 'Admin' && isActive('/ver-usuarios'))
-                ? 'active' : ''
-            }`}
+            onClick={() => handleNavigation('third')}
+            className={`buttons ${isActive(config.thirdButton.path) ? 'active' : ''}`}
           >
-            {userType === 'Customer' && 'Buscar Profesionales'}
-            {userType === 'Professional' && 'Solicitudes'}
-            {userType === 'Admin' && 'Ver usuarios'}
+            {config.thirdButton.label}
           </Nav.Link>
         </Nav.Item>
-
-        <Nav.Item style={{ flex: 1 }}>
-          <Nav.Link
-            onClick={() => {
-              if (userType === 'Customer') navigate('/solicitudes-enviadas');
-              else if (userType === 'Professional') navigate('/ver-aceptadas');
-              else if (userType === 'Admin') navigate('/ver-citas');
-            }}
-            className={`buttons ${
-              (userType === 'Customer' && isActive('/solicitudes-enviadas')) ||
-              (userType === 'Professional' && isActive('/ver-aceptadas')) ||
-              (userType === 'Admin' && isActive('/ver-citas'))
-                ? 'active' : ''
-            }`}
-          >
-            Citas
-          </Nav.Link>
-        </Nav.Item>
-
-      </Nav>
-
-    </div>
-
+      )}
+    </Nav>
   );
 };
 

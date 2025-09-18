@@ -15,18 +15,13 @@
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   padding: 3rem;
-  text-align: center;
 }
 
 .home-content h1 {
-  color: #2c3e50;
+  color: #8b0000;
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .welcome-message {
@@ -42,17 +37,12 @@
 }
 
 .features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
   margin-top: 2rem;
 }
 
 .feature-card {
   background: #f8f9fa;
   border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
   transition: all 0.3s ease;
   border: 1px solid #e9ecef;
   position: relative;
@@ -66,12 +56,11 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #8b0000;
 }
 
 .feature-icon {
   font-size: 3rem;
-  margin-bottom: 1rem;
   display: block;
 }
 
@@ -79,18 +68,12 @@
   color: #2c3e50;
   font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 1rem;
 }
 
-.feature-card p {
+.feature-card .card-text {
   color: #6c757d;
   line-height: 1.6;
   font-size: 1rem;
-}
-
-.feature-card p strong {
-  color: #dc3545;
-  font-weight: 600;
 }
 
 /* Responsive Design */
@@ -112,15 +95,6 @@
     margin-bottom: 2rem;
   }
   
-  .features-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .feature-card {
-    padding: 1.5rem;
-  }
-  
   .feature-icon {
     font-size: 2.5rem;
   }
@@ -137,9 +111,5 @@
   
   .welcome-message {
     font-size: 1rem;
-  }
-  
-  .feature-card {
-    padding: 1rem;
   }
 }

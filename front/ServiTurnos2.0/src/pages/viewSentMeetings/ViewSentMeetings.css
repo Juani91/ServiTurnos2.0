@@ -1,68 +1,32 @@
-.view-sent-meetings {
+.sent-meetings-container {
   align-self: flex-start;
   width: 100%;
-  margin-top: 1rem;
 }
 
-.view-sent-meetings .card {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+.sent-meeting-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border: none;
+  border-radius: 12px;
   display: flex;
   flex-direction: row;
   align-items: stretch;
   padding: 1.5rem;
-  min-height: 280px; /* Altura mínima más grande */
-  height: auto; /* Permite que crezca automáticamente */
+  min-height: 280px;
+  background-color: #f8f9fa;
 }
 
-.view-sent-meetings .card-img {
+.meeting-avatar {
   width: 150px;
   height: 150px;
   object-fit: cover;
-  border-radius: 100px;
+  border-radius: 50%;
   margin-right: 24px;
 }
 
-.view-sent-meetings .card-body {
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 100%;
-  min-height: 200px; /* Altura mínima del contenido */
-}
-
-.view-sent-meetings .card-title {
+.meeting-title {
   font-size: 1.3rem;
   margin-bottom: 0.7rem;
-}
-
-.view-sent-meetings .card-text {
-  margin-bottom: 1rem;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
-  flex-grow: 1;
-  line-height: 1.5; /* Altura de línea más generosa */
-}
-
-.view-sent-meetings .btn-cancel {
-  border-radius: 8px;
-  padding: 8px 24px;
-}
-
-.view-sent-meetings .btn-finalize {
-  border-radius: 8px;
-  padding: 8px 24px;
-}
-
-.card-btn-container {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  gap: 8px;
-  margin-top: auto;
+  font-weight: 600;
 }
 
 .meeting-status-badge {
@@ -75,6 +39,27 @@
   color: #495057;
 }
 
-.card-meeting {
-  background-color: #f8f9fa !important; /* Color neutro para meetings */
+.btn-action {
+  border-radius: 8px;
+  padding: 8px 24px;
+}
+
+@media (max-width: 768px) {
+  .sent-meeting-card {
+    flex-direction: column;
+    text-align: center;
+    min-height: auto;
+  }
+  
+  .meeting-avatar {
+    width: 120px;
+    height: 120px;
+    margin-right: 0;
+    margin-bottom: 1rem;
+    align-self: center;
+  }
+  
+  .meeting-title {
+    font-size: 1.1rem;
+  }
 }

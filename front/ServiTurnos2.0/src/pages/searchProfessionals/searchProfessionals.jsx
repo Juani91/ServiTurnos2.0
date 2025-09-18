@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Card, Row, Col, Container, Modal, Form } from 'react-bootstrap'
+import { Card, Row, Col, Container, Modal, Form, Button as BSButton } from 'react-bootstrap'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
 import { useUsers } from '../../services/usersContext/UsersContext'
@@ -8,7 +8,7 @@ import { useMeetings } from '../../services/meetingsContext/MeetingsContext'
 import { useToast } from '../../context/toastContext/ToastContext'
 import './searchProfessionals.css'
 
-const professionMap = {
+const PROFESSION_MAP = {
   0: "Gasista",
   1: "Electricista", 
   2: "Plomero",
@@ -16,6 +16,17 @@ const professionMap = {
   4: "Albañil",
   5: "Refrigeración"
 }
+
+const TIME_SLOTS = (() => {
+  const slots = []
+  for (let hour = 8; hour <= 18; hour++) {
+    for (let minute of [0, 30]) {
+      if (hour === 18 && minute === 30) break
+      slots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`)
+    }
+  }
+  return slots
+})()
 
 const parseJwt = (token) => {
   try {
@@ -25,7 +36,6 @@ const parseJwt = (token) => {
   }
 }
 
-// Validación para verificar si el profesional tiene el perfil completo
 const isProfessionalComplete = (professional) => {
   return professional.imageURL && 
          professional.firstName && 
@@ -37,10 +47,14 @@ const isProfessionalComplete = (professional) => {
          professional.availability
 }
 
+const isCustomerComplete = (customer) => {
+  return customer?.imageURL && customer?.city && customer?.phoneNumber
+}
+
 const SearchProfessionals = () => {
   const [query, setQuery] = useState('')
   const [professionals, setProfessionals] = useState([])
-  const [filtered, setFiltered] = useState([])
+  const [filteredProfessionals, setFilteredProfessionals] = useState([])
   const [customer, setCustomer] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [selectedProfessional, setSelectedProfessional] = useState(null)
@@ -58,81 +72,94 @@ const SearchProfessionals = () => {
   const decoded = token ? parseJwt(token) : null
   const userId = decoded?.Id
 
-  useEffect(() => {
-    const fetchCustomer = async () => {
-      if (userId) {
-        const res = await GetCustomerById(userId, token)
-        if (res.success) setCustomer(res.data)
-      }
-    }
-    fetchCustomer()
-  }, [userId, token, GetCustomerById])
+  const getActiveProfessionals = (profs) => {
+    return profs.filter(prof => 
+      isProfessionalComplete(prof) && 
+      !prof.isDeleted && 
+      prof.available !== 0 && 
+      prof.available !== false
+    )
+  }
+
+  const searchProfessionals = (searchValue, profs) => {
+    if (!searchValue.trim()) return profs
+    
+    const q = searchValue.toLowerCase()
+    return profs.filter(prof =>
+      prof.firstName?.toLowerCase().includes(q) ||
+      prof.lastName?.toLowerCase().includes(q) ||
+      PROFESSION_MAP[prof.profession]?.toLowerCase().includes(q) ||
+      prof.city?.toLowerCase().includes(q)
+    )
+  }
+
+  const sortProfessionals = (profs, ascending = true) => {
+    return [...profs].sort((a, b) => ascending ? a.fee - b.fee : b.fee - a.fee)
+  }
 
   useEffect(() => {
-    const fetchProfessionals = async () => {
-      const res = await GetAllProfessionals(token)
-      if (res.success) {
-        // Filtrar solo profesionales con perfil completo y que no estén bloqueados
-        const activeProfessionals = res.data.filter(prof => 
-          isProfessionalComplete(prof) && 
-          !prof.isDeleted && 
-          prof.available !== 0 && 
-          prof.available !== false
-        )
+    const fetchData = async () => {
+      if (!userId) return
+
+      const [customerRes, professionalsRes] = await Promise.all([
+        GetCustomerById(userId, token),
+        GetAllProfessionals(token)
+      ])
+
+      if (customerRes.success) setCustomer(customerRes.data)
+      
+      if (professionalsRes.success) {
+        const activeProfessionals = getActiveProfessionals(professionalsRes.data)
         setProfessionals(activeProfessionals)
-        setFiltered(activeProfessionals)
+        setFilteredProfessionals(activeProfessionals)
       }
     }
-    fetchProfessionals()
-  }, [GetAllProfessionals, token])
+    fetchData()
+  }, [userId, token, GetCustomerById, GetAllProfessionals])
+
+  const handleSearch = (value) => {
+    setQuery(value)
+    setFilteredProfessionals(searchProfessionals(value, professionals))
+  }
+
+  const handleSort = (ascending) => {
+    setFilteredProfessionals(sortProfessionals(filteredProfessionals, ascending))
+  }
 
   const handleRequestMeeting = (professional) => {
     setSelectedProfessional(professional)
-    setShowModal(true)
     setMeetingData({ date: '', time: '', jobInfo: '' })
+    setShowModal(true)
   }
 
-  const handleCloseModal = () => {
+  const closeModal = () => {
     setShowModal(false)
     setSelectedProfessional(null)
     setMeetingData({ date: '', time: '', jobInfo: '' })
   }
 
-  const handleInputChange = (e) => {
+  const handleMeetingDataChange = (e) => {
     const { name, value } = e.target
     
-    // Límite de caracteres para jobInfo
-    if (name === 'jobInfo' && value.length > 500) {
-      return // No actualizar si excede el límite
-    }
+    if (name === 'jobInfo' && value.length > 200) return
     
-    setMeetingData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setMeetingData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleSubmitMeeting = async () => {
-    // Validaciones
-    if (!meetingData.date || !meetingData.time || !meetingData.jobInfo.trim()) {
+    const { date, time, jobInfo } = meetingData
+    
+    if (!date || !time || !jobInfo.trim()) {
       showToast('Por favor complete todos los campos', 'error')
       return
     }
 
-    // Validación adicional de longitud
-    if (meetingData.jobInfo.trim().length > 500) {
-      showToast('La descripción no puede exceder los 500 caracteres', 'error')
-      return
-    }
-
-    // Formar la fecha en formato ISO
-    const meetingDateTime = `${meetingData.date}T${meetingData.time}:00.000Z`
-
+    const meetingDateTime = `${date}T${time}:00.000Z`
     const requestData = {
       customerId: userId,
       professionalId: selectedProfessional.id,
       meetingDate: meetingDateTime,
-      jobInfo: meetingData.jobInfo.trim()
+      jobInfo: jobInfo.trim()
     }
 
     try {
@@ -140,7 +167,7 @@ const SearchProfessionals = () => {
       
       if (result.success) {
         showToast('Solicitud de turno enviada exitosamente', 'success')
-        handleCloseModal()
+        closeModal()
       } else {
         showToast(result.msg || 'Error al enviar la solicitud', 'error')
       }
@@ -149,62 +176,45 @@ const SearchProfessionals = () => {
     }
   }
 
-  // Generate time options (every 30 minutes from 8:00 to 18:00)
-  const generateTimeOptions = () => {
-    const options = []
-    for (let hour = 8; hour <= 18; hour++) {
-      for (let minute of [0, 30]) {
-        if (hour === 18 && minute === 30) break // Stop at 18:00
-        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-        options.push(timeStr)
-      }
-    }
-    return options
-  }
+  const getMinDate = () => new Date().toISOString().split('T')[0]
 
-  // Get minimum date (today)
-  const getMinDate = () => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  }
+  const renderProfessionalCard = (prof) => (
+    <Col md={6} key={prof.id} className="mb-4">
+      <Card className="professional-card">
+        <div className="d-flex align-items-center p-3">
+          <img
+            src={prof.imageURL || '/images/NoImage.webp'}
+            alt="Foto perfil"
+            className="professional-avatar me-3"
+          />
+          <div className="flex-grow-1">
+            <Card.Title className="professional-title mb-2">
+              {prof.firstName} {prof.lastName}
+            </Card.Title>
+            <div className="professional-info mb-3">
+              <div><strong>Profesión:</strong> {PROFESSION_MAP[prof.profession] || 'Desconocido'}</div>
+              <div><strong>Ciudad:</strong> {prof.city}</div>
+              <div><strong>Tarifa:</strong> ${prof.fee}</div>
+              <div><strong>Disponibilidad:</strong> {prof.availability}</div>
+            </div>
+            <div className="d-flex justify-content-end">
+              <Button 
+                variant="success" 
+                className="request-btn"
+                onClick={() => handleRequestMeeting(prof)}
+              >
+                Solicitar turno
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </Col>
+  )
 
-  const handleInputChangeSearch = (e) => {
-    const value = e.target.value
-    setQuery(value)
-    
-    if (!value.trim()) {
-      // Solo mostrar profesionales con perfil completo
-      setFiltered(professionals)
-      return
-    }
-
-    const q = value.toLowerCase()
-    // Filtrar entre los profesionales que ya tienen perfil completo
-    const results = professionals.filter(prof =>
-      prof.firstName?.toLowerCase().includes(q) ||
-      prof.lastName?.toLowerCase().includes(q) ||
-      professionMap[prof.profession]?.toLowerCase().includes(q) ||
-      prof.city?.toLowerCase().includes(q)
-    )
-    setFiltered(results)
-  }
-
-  const sortByPriceAsc = () => {
-    const sorted = [...filtered].sort((a, b) => a.fee - b.fee)
-    setFiltered(sorted)
-  }
-
-  const sortByPriceDesc = () => {
-    const sorted = [...filtered].sort((a, b) => b.fee - a.fee)
-    setFiltered(sorted)
-  }
-
-  // Validación de campos obligatorios
-  const isCustomerComplete = customer?.imageURL && customer?.city && customer?.phoneNumber
-
-  if (!isCustomerComplete) {
+  if (!isCustomerComplete(customer)) {
     return (
-      <Container className="search-professionals">
+      <Container className="search-container">
         <Row className="justify-content-center">
           <Col md={8} className="text-center mt-5">
             <h4>Por favor actualice su perfil para poder realizar esta acción.</h4>
@@ -215,21 +225,21 @@ const SearchProfessionals = () => {
   }
 
   return (
-    <Container className="search-professionals">
-      <Row className="justify-content-center">
+    <Container className="search-container">
+      {/* Buscador y controles */}
+      <Row className="justify-content-center mb-4">
         <Col md={6}>
           <Input
             type="text"
             value={query}
-            onChange={handleInputChangeSearch}
+            onChange={(e) => handleSearch(e.target.value)}
             placeholder="Nombre, profesión, ciudad..."
           />
         </Col>
         <Col md="auto" className="d-flex gap-2">
-          
           <Button 
             variant="primary"            
-            onClick={sortByPriceAsc}            
+            onClick={() => handleSort(true)}            
             title="Ordenar precio: menor a mayor"
             style={{ height: '38px' }}
           >
@@ -237,7 +247,7 @@ const SearchProfessionals = () => {
           </Button>
           <Button 
             variant="primary" 
-            onClick={sortByPriceDesc}
+            onClick={() => handleSort(false)}
             title="Ordenar precio: mayor a menor"
             style={{ height: '38px' }}
           >
@@ -245,49 +255,22 @@ const SearchProfessionals = () => {
           </Button>
         </Col>
       </Row>
+
+      {/* Lista de profesionales */}
       <Row>
-        {filtered.length === 0 ? (
-          <Col>
-            <p className="text-center">No se encontraron profesionales.</p>
+        {filteredProfessionals.length === 0 ? (
+          <Col xs={12}>
+            <div className="text-center mt-5">
+              <p>No se encontraron profesionales.</p>
+            </div>
           </Col>
         ) : (
-          filtered.map(prof => (
-            <Col md={6} key={prof.id} className="mb-4">
-              <Card className="card card-professional">
-                <Card.Img
-                  variant="left"
-                  src={prof.imageURL || '/images/NoImage.webp'}
-                  alt="Foto perfil"
-                  className="card-img"
-                />
-                <Card.Body className="card-body">
-                  <Card.Title className="card-title">
-                    {prof.firstName} {prof.lastName}
-                  </Card.Title>
-                  <Card.Text className="card-text">
-                    <strong>Profesión:</strong> {professionMap[prof.profession] || 'Desconocido'}<br />
-                    <strong>Ciudad:</strong> {prof.city}<br />
-                    <strong>Tarifa:</strong> ${prof.fee}<br />
-                    <strong>Disponibilidad:</strong> {prof.availability}
-                  </Card.Text>
-                  <div className="card-btn-container">
-                    <Button 
-                      variant="success" 
-                      className="btn-success"
-                      onClick={() => handleRequestMeeting(prof)}
-                    >
-                      Solicitar turno
-                    </Button>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))
+          filteredProfessionals.map(renderProfessionalCard)
         )}
       </Row>
 
       {/* Modal para solicitar turno */}
-      <Modal show={showModal} onHide={handleCloseModal} centered>
+      <Modal show={showModal} onHide={closeModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>Solicitar Turno</Modal.Title>
         </Modal.Header>
@@ -295,7 +278,9 @@ const SearchProfessionals = () => {
           {selectedProfessional && (
             <div className="mb-3">
               <h6>{selectedProfessional.firstName} {selectedProfessional.lastName}</h6>
-              <p className="text-muted">{professionMap[selectedProfessional.profession]} - ${selectedProfessional.fee}</p>
+              <p className="text-muted">
+                {PROFESSION_MAP[selectedProfessional.profession]} - ${selectedProfessional.fee}
+              </p>
             </div>
           )}
           
@@ -308,7 +293,7 @@ const SearchProfessionals = () => {
                     type="date"
                     name="date"
                     value={meetingData.date}
-                    onChange={handleInputChange}
+                    onChange={handleMeetingDataChange}
                     min={getMinDate()}
                     required
                   />
@@ -320,11 +305,11 @@ const SearchProfessionals = () => {
                   <Form.Select
                     name="time"
                     value={meetingData.time}
-                    onChange={handleInputChange}
+                    onChange={handleMeetingDataChange}
                     required
                   >
                     <option value="">Seleccionar hora</option>
-                    {generateTimeOptions().map(time => (
+                    {TIME_SLOTS.map(time => (
                       <option key={time} value={time}>{time}</option>
                     ))}
                   </Form.Select>
@@ -339,15 +324,13 @@ const SearchProfessionals = () => {
                 rows={4}
                 name="jobInfo"
                 value={meetingData.jobInfo}
-                onChange={handleInputChange}
+                onChange={handleMeetingDataChange}
                 placeholder="Describa brevemente el trabajo a realizar..."
                 maxLength={200}
                 required
               />
               <div className="d-flex justify-content-between mt-1">
-                <small className="text-muted">
-                  Máximo 200 caracteres
-                </small>
+                <small className="text-muted">Máximo 200 caracteres</small>
                 <small className={`${meetingData.jobInfo.length > 150 ? 'text-warning' : 'text-muted'} ${meetingData.jobInfo.length >= 200 ? 'text-danger' : ''}`}>
                   {meetingData.jobInfo.length}/200
                 </small>
@@ -356,12 +339,12 @@ const SearchProfessionals = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
+          <BSButton variant="secondary" onClick={closeModal}>
             Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleSubmitMeeting}>
+          </BSButton>
+          <BSButton variant="primary" onClick={handleSubmitMeeting}>
             Enviar Solicitud
-          </Button>
+          </BSButton>
         </Modal.Footer>
       </Modal>
     </Container>

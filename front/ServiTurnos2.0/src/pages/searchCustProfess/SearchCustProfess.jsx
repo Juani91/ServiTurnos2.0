@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Card, Row, Col, Container, Modal, Form } from 'react-bootstrap'
+import { Card, Row, Col, Container, Modal, Form, Button as BSButton } from 'react-bootstrap'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
 import { useUsers } from '../../services/usersContext/UsersContext'
@@ -8,7 +8,7 @@ import { useToast } from '../../context/toastContext/ToastContext'
 import './SearchCustProfess.css'
 import '../../components/navbar/Navbar.css'
 
-const professionMap = {
+const PROFESSION_MAP = {
   0: "Gasista",
   1: "Electricista", 
   2: "Plomero",
@@ -17,98 +17,94 @@ const professionMap = {
   5: "Refrigeración"
 }
 
+const USER_TYPES = {
+  professional: 'Profesional',
+  customer: 'Cliente'
+}
+
 const SearchCustProfess = () => {
   const [query, setQuery] = useState('')
-  const [customers, setCustomers] = useState([])
-  const [professionals, setProfessionals] = useState([])
   const [allUsers, setAllUsers] = useState([])
-  const [filtered, setFiltered] = useState([])
+  const [filteredUsers, setFilteredUsers] = useState([])
+  const [activeTab, setActiveTab] = useState('active')
   const [showModal, setShowModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
   const [userToDelete, setUserToDelete] = useState(null)
   const [editForm, setEditForm] = useState({})
-  const [activeTab, setActiveTab] = useState('active') // 'active' o 'blocked'
-  const { GetAllCustomers, GetAllProfessionals, UpdateCustomer, UpdateProfessional, SoftDeleteCustomer, SoftDeleteProfessional, HardDeleteCustomer, HardDeleteProfessional } = useUsers()
+  
+  const { 
+    GetAllCustomers, 
+    GetAllProfessionals, 
+    UpdateCustomer, 
+    UpdateProfessional, 
+    SoftDeleteCustomer, 
+    SoftDeleteProfessional, 
+    HardDeleteCustomer, 
+    HardDeleteProfessional 
+  } = useUsers()
   const { token } = useAuth()
   const { showToast } = useToast()
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const [customersRes, professionalsRes] = await Promise.all([
-        GetAllCustomers(token),
-        GetAllProfessionals(token)
-      ])
+  const isUserBlocked = (user) => user.isDeleted || user.available === 0 || user.available === false
 
-      if (customersRes.success && professionalsRes.success) {
-        // Agregar tipo de usuario a cada objeto
-        const customersWithType = customersRes.data.map(customer => ({
-          ...customer,
-          userType: 'customer'
-        }))
-        
-        const professionalsWithType = professionalsRes.data.map(professional => ({
-          ...professional,
-          userType: 'professional'
-        }))
+  const filterUsersByStatus = (users, status) => {
+    return users.filter(user => status === 'active' ? !isUserBlocked(user) : isUserBlocked(user))
+  }
 
-        // Combinar ambas listas y ordenar alfabéticamente por apellido
-        const combinedUsers = [...customersWithType, ...professionalsWithType]
-          .sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''))
-        
-        setCustomers(customersRes.data)
-        setProfessionals(professionalsRes.data)
-        setAllUsers(combinedUsers)
-        
-        // Filtrar según la pestaña activa
-        filterUsersByStatus(combinedUsers, activeTab)
-      }
+  const processUserData = (customers, professionals) => {
+    const combinedUsers = [
+      ...customers.map(customer => ({ ...customer, userType: 'customer' })),
+      ...professionals.map(professional => ({ ...professional, userType: 'professional' }))
+    ].sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''))
+    
+    setAllUsers(combinedUsers)
+    setFilteredUsers(filterUsersByStatus(combinedUsers, activeTab))
+  }
+
+  const fetchData = async () => {
+    const [customersRes, professionalsRes] = await Promise.all([
+      GetAllCustomers(token),
+      GetAllProfessionals(token)
+    ])
+
+    if (customersRes.success && professionalsRes.success) {
+      processUserData(customersRes.data, professionalsRes.data)
     }
+  }
+
+  useEffect(() => {
     fetchData()
-  }, [GetAllCustomers, GetAllProfessionals, token])
+  }, [])
 
   useEffect(() => {
     if (allUsers.length > 0) {
-      filterUsersByStatus(allUsers, activeTab)
+      handleSearch(query)
     }
   }, [activeTab, allUsers])
 
-  const handleInputChange = (e) => {
-    const value = e.target.value
-    setQuery(value)
+  const handleSearch = (searchValue) => {
+    setQuery(searchValue)
     
-    if (!value.trim()) {
-      filterUsersByStatus(allUsers, activeTab)
+    const usersByStatus = filterUsersByStatus(allUsers, activeTab)
+    
+    if (!searchValue.trim()) {
+      setFilteredUsers(usersByStatus)
       return
     }
 
-    const q = value.toLowerCase()
-    
-    // Filtrar por estado (bloqueado/activo) y luego por nombre
-    const usersByStatus = allUsers.filter(user => {
-      const isBlocked = user.isDeleted || user.available === 0 || user.available === false
-      return activeTab === 'active' ? !isBlocked : isBlocked
-    })
-    
+    const q = searchValue.toLowerCase()
     const results = usersByStatus.filter(user =>
       user.firstName?.toLowerCase().includes(q) ||
       user.lastName?.toLowerCase().includes(q)
     )
-    setFiltered(results)
-  }
-
-  const filterUsersByStatus = (users, status) => {
-    const filteredUsers = users.filter(user => {
-      const isBlocked = user.isDeleted || user.available === 0 || user.available === false
-      return status === 'active' ? !isBlocked : isBlocked
-    })
-    setFiltered(filteredUsers)
+    setFilteredUsers(results)
   }
 
   const handleTabChange = (tab) => {
     setActiveTab(tab)
-    setQuery('') // Limpiar búsqueda al cambiar de pestaña
-    filterUsersByStatus(allUsers, tab)
+    setQuery('')
+    setFilteredUsers(filterUsersByStatus(allUsers, tab))
   }
 
   const handleModify = (user) => {
@@ -127,7 +123,7 @@ const SearchCustProfess = () => {
     setShowModal(true)
   }
 
-  const handleCloseModal = () => {
+  const closeModal = () => {
     setShowModal(false)
     setSelectedUser(null)
     setEditForm({})
@@ -136,7 +132,6 @@ const SearchCustProfess = () => {
   const handleSaveChanges = async () => {
     if (!selectedUser) return
     
-    // Detectar si hay cambios
     const originalData = {
       firstName: selectedUser.firstName || '',
       lastName: selectedUser.lastName || '',
@@ -149,29 +144,21 @@ const SearchCustProfess = () => {
       })
     }
 
-    const hasChanges = Object.keys(editForm).some(key => {
-      return editForm[key] !== originalData[key]
-    })
+    const hasChanges = Object.keys(editForm).some(key => editForm[key] !== originalData[key])
 
     if (!hasChanges) {
       showToast('No se encontraron modificaciones', 'info')
-      handleCloseModal()
+      closeModal()
       return
     }
 
     try {
-      let result
-      
-      if (selectedUser.userType === 'professional') {
-        result = await UpdateProfessional(selectedUser.id, editForm, token)
-      } else {
-        result = await UpdateCustomer(selectedUser.id, editForm, token)
-      }
+      const updateFunction = selectedUser.userType === 'professional' ? UpdateProfessional : UpdateCustomer
+      const result = await updateFunction(selectedUser.id, editForm, token)
 
       if (result.success) {
         showToast('Usuario modificado exitosamente!', 'success')
-        handleCloseModal()
-        // Recargar los datos para mostrar los cambios
+        closeModal()
         await fetchData()
       } else {
         showToast(result.msg || 'Error al modificar usuario', 'error')
@@ -181,60 +168,18 @@ const SearchCustProfess = () => {
     }
   }
 
-  const fetchData = async () => {
-    const [customersRes, professionalsRes] = await Promise.all([
-      GetAllCustomers(token),
-      GetAllProfessionals(token)
-    ])
-
-    if (customersRes.success && professionalsRes.success) {
-      // Agregar tipo de usuario a cada objeto
-      const customersWithType = customersRes.data.map(customer => ({
-        ...customer,
-        userType: 'customer'
-      }))
-      
-      const professionalsWithType = professionalsRes.data.map(professional => ({
-        ...professional,
-        userType: 'professional'
-      }))
-
-      // Combinar ambas listas y ordenar alfabéticamente por apellido
-      const combinedUsers = [...customersWithType, ...professionalsWithType]
-        .sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''))
-      
-      setCustomers(customersRes.data)
-      setProfessionals(professionalsRes.data)
-      setAllUsers(combinedUsers)
-      
-      // Filtrar según la pestaña activa
-      filterUsersByStatus(combinedUsers, activeTab)
-    }
-  }
-
-  const handleFormChange = (field, value) => {
-    setEditForm(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleDelete = async (user) => {
+  const handleToggleBlock = async (user) => {
     try {
-      let result
-      
-      if (user.userType === 'professional') {
-        result = await SoftDeleteProfessional(user.id, token)
-      } else {
-        result = await SoftDeleteCustomer(user.id, token)
-      }
+      const isBlocked = isUserBlocked(user)
+      const action = isBlocked ? 'Desbloquear' : 'Bloquear'
+      const deleteFunction = user.userType === 'professional' ? SoftDeleteProfessional : SoftDeleteCustomer
+      const result = await deleteFunction(user.id, token)
 
       if (result.success) {
-        showToast(`${user.userType === 'professional' ? 'Profesional' : 'Cliente'} bloqueado exitosamente!`, 'success')
-        // Recargar los datos para mostrar los cambios
+        showToast(`${USER_TYPES[user.userType]} ${action.toLowerCase()}ado exitosamente!`, 'success')
         await fetchData()
       } else {
-        showToast(result.msg || 'Error al bloquear usuario', 'error')
+        showToast(result.msg || `Error al ${action.toLowerCase()} usuario`, 'error')
       }
     } catch (error) {
       showToast('Error de conexión con el servidor', 'error')
@@ -250,17 +195,11 @@ const SearchCustProfess = () => {
     if (!userToDelete) return
     
     try {
-      let result
-      
-      if (userToDelete.userType === 'professional') {
-        result = await HardDeleteProfessional(userToDelete.id, token)
-      } else {
-        result = await HardDeleteCustomer(userToDelete.id, token)
-      }
+      const deleteFunction = userToDelete.userType === 'professional' ? HardDeleteProfessional : HardDeleteCustomer
+      const result = await deleteFunction(userToDelete.id, token)
 
       if (result.success) {
-        showToast(`${userToDelete.userType === 'professional' ? 'Profesional' : 'Cliente'} eliminado permanentemente!`, 'success')
-        // Recargar los datos para mostrar los cambios
+        showToast(`${USER_TYPES[userToDelete.userType]} eliminado permanentemente!`, 'success')
         await fetchData()
       } else {
         showToast(result.msg || 'Error al eliminar usuario', 'error')
@@ -273,125 +212,125 @@ const SearchCustProfess = () => {
     }
   }
 
-  const handleCloseDeleteModal = () => {
-    setShowDeleteModal(false)
-    setUserToDelete(null)
-  }
+  const activeUsers = allUsers.filter(u => !isUserBlocked(u))
+  const blockedUsers = allUsers.filter(u => isUserBlocked(u))
+
+  const renderUserCard = (user) => (
+    <Col md={6} key={`${user.userType}-${user.id}`} className="mb-4">
+      <Card className={`user-card ${user.userType === 'professional' ? 'card-professional' : 'card-customer'}`}>
+        <Card.Img
+          variant="left"
+          src={user.imageURL || '/images/NoImage.webp'}
+          alt="Foto perfil"
+          className="user-avatar"
+        />
+        <Card.Body className="user-body">
+          <h5 className="user-title">
+            {user.firstName} {user.lastName} 
+            <span className="user-type-badge">
+              {user.userType === 'professional' ? 'PROFESIONAL' : 'CLIENTE'}
+            </span>
+          </h5>
+          
+          <Card.Text className="user-info">
+            {user.userType === 'professional' ? (
+              <>
+                <strong>Profesión:</strong> {PROFESSION_MAP[user.profession] || '-'}<br />
+                <strong>Ciudad:</strong> {user.city || '-'}<br />
+                <strong>Tarifa:</strong> {user.fee ? `$${user.fee}` : '-'}<br />
+                <strong>Disponibilidad:</strong> {user.availability || '-'}
+              </>
+            ) : (
+              <>
+                <strong>Ciudad:</strong> {user.city || '-'}<br />
+                <span className="invisible-field"><strong>&nbsp;</strong></span><br />
+                <span className="invisible-field"><strong>&nbsp;</strong></span><br />
+                <span className="invisible-field"><strong>&nbsp;</strong></span>
+              </>
+            )}
+          </Card.Text>
+          <div className="user-actions d-flex justify-content-end gap-2">
+            {activeTab === 'blocked' && (
+              <Button 
+                variant="dark" 
+                className="btn-action"
+                onClick={() => handleHardDelete(user)}
+              >
+                Eliminar
+              </Button>
+            )}
+            <Button 
+              variant="warning" 
+              className="btn-action"
+              onClick={() => handleModify(user)}
+            >
+              Modificar
+            </Button>
+            <Button 
+              variant="danger" 
+              className="btn-action"
+              onClick={() => handleToggleBlock(user)}
+            >
+              {activeTab === 'active' ? 'Bloquear' : 'Desbloquear'}
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
+    </Col>
+  )
 
   return (
-    <Container className="search-cust-profess">
-      {/* Pestañas para cambiar entre usuarios activos y bloqueados */}
+    <Container className="search-container">
+      {/* Pestañas */}
       <Row className="justify-content-center mb-3">
         <Col md={8}>
-          <div className="d-flex gap-2">
+          <div className="tab-container d-flex gap-2">
             <div 
-              className={`buttons ${activeTab === 'active' ? 'active' : ''}`}
+              className={`tab-button ${activeTab === 'active' ? 'active' : ''}`}
               onClick={() => handleTabChange('active')}
-              style={{ flex: 1, cursor: 'pointer' }}
             >
-              Usuarios Activos ({allUsers.filter(u => !u.isDeleted && u.available !== 0 && u.available !== false).length})
+              Usuarios Activos ({activeUsers.length})
             </div>
             <div 
-              className={`buttons ${activeTab === 'blocked' ? 'active' : ''}`}
+              className={`tab-button ${activeTab === 'blocked' ? 'active' : ''}`}
               onClick={() => handleTabChange('blocked')}
-              style={{ flex: 1, cursor: 'pointer' }}
             >
-              Usuarios Bloqueados ({allUsers.filter(u => u.isDeleted || u.available === 0 || u.available === false).length})
+              Usuarios Bloqueados ({blockedUsers.length})
             </div>
           </div>
         </Col>
       </Row>
 
+      {/* Buscador */}
       <Row className="justify-content-center">
         <Col md={6}>
           <Input
             type="text"
             value={query}
-            onChange={handleInputChange}
+            onChange={(e) => handleSearch(e.target.value)}
             placeholder="Buscar por nombre..."
           />
         </Col>
       </Row>
 
+      {/* Lista de usuarios */}
       <Row>
-        {filtered.length === 0 ? (
-          <Col>
-            <p className="text-center">
-              No se encontraron usuarios.
-            </p>
+        {filteredUsers.length === 0 ? (
+          <Col xs={12}>
+            <div className="text-center mt-5">
+              <p>No se encontraron usuarios.</p>
+            </div>
           </Col>
         ) : (
-          filtered.map(user => (
-            <Col md={6} key={`${user.userType}-${user.id}`} className="mb-4">
-              <Card className={`card ${user.userType === 'professional' ? 'card-professional' : 'card-customer'}`}>
-                <Card.Img
-                  variant="left"
-                  src={user.imageURL || '/images/NoImage.webp'}
-                  alt="Foto perfil"
-                  className="card-img"
-                />
-                <Card.Body className="card-body">
-                  <Card.Title className="card-title">
-                    {user.firstName} {user.lastName}
-                    <span className="user-type-badge ms-2">
-                      {user.userType === 'professional' ? 'Profesional' : 'Cliente'}
-                    </span>
-                  </Card.Title>
-                  <Card.Text className="card-text">
-                    {user.userType === 'professional' ? (
-                      <>
-                        <strong>Profesión:</strong> {professionMap[user.profession] !== undefined ? professionMap[user.profession] : '-'}<br />
-                        <strong>Ciudad:</strong> {user.city || '-'}<br />
-                        <strong>Tarifa:</strong> {user.fee ? `$${user.fee}` : '-'}<br />
-                        <strong>Disponibilidad:</strong> {user.availability || '-'}
-                      </>
-                    ) : (
-                      <>
-                        <strong>Ciudad:</strong> {user.city || '-'}<br />
-                        <span className="invisible-field"><strong>&nbsp;</strong></span><br />
-                        <span className="invisible-field"><strong>&nbsp;</strong></span><br />
-                        <span className="invisible-field"><strong>&nbsp;</strong></span>
-                      </>
-                    )}
-                  </Card.Text>
-                  <div className="card-btn-container">
-                    {activeTab === 'blocked' && (
-                      <Button 
-                        variant="dark" 
-                        className="btn-hard-delete"
-                        onClick={() => handleHardDelete(user)}
-                      >
-                        Eliminar
-                      </Button>
-                    )}
-                    <Button 
-                      variant="warning" 
-                      className="btn-modify"
-                      onClick={() => handleModify(user)}
-                    >
-                      Modificar
-                    </Button>
-                    <Button 
-                      variant="danger" 
-                      className="btn-delete"
-                      onClick={() => handleDelete(user)}
-                    >
-                      {activeTab === 'active' ? 'Bloquear' : 'Desbloquear'}
-                    </Button>
-                    
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))
+          filteredUsers.map(renderUserCard)
         )}
       </Row>
 
-      {/* Modal para editar usuario */}
-      <Modal show={showModal} onHide={handleCloseModal} size="lg">
+      {/* Modal de edición */}
+      <Modal show={showModal} onHide={closeModal} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>
-            Modificar {selectedUser?.userType === 'professional' ? 'Profesional' : 'Cliente'}
+            Modificar {selectedUser && USER_TYPES[selectedUser.userType]}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -403,7 +342,7 @@ const SearchCustProfess = () => {
                   <Form.Control
                     type="text"
                     value={editForm.firstName || ''}
-                    onChange={(e) => handleFormChange('firstName', e.target.value)}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, firstName: e.target.value }))}
                   />
                 </Form.Group>
               </Col>
@@ -413,7 +352,7 @@ const SearchCustProfess = () => {
                   <Form.Control
                     type="text"
                     value={editForm.lastName || ''}
-                    onChange={(e) => handleFormChange('lastName', e.target.value)}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, lastName: e.target.value }))}
                   />
                 </Form.Group>
               </Col>
@@ -425,7 +364,7 @@ const SearchCustProfess = () => {
                   <Form.Control
                     type="text"
                     value={editForm.city || ''}
-                    onChange={(e) => handleFormChange('city', e.target.value)}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, city: e.target.value }))}
                   />
                 </Form.Group>
               </Col>
@@ -435,7 +374,7 @@ const SearchCustProfess = () => {
                   <Form.Control
                     type="text"
                     value={editForm.phoneNumber || ''}
-                    onChange={(e) => handleFormChange('phoneNumber', e.target.value)}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
                   />
                 </Form.Group>
               </Col>
@@ -449,14 +388,11 @@ const SearchCustProfess = () => {
                       <Form.Label>Profesión</Form.Label>
                       <Form.Select
                         value={editForm.profession || 0}
-                        onChange={(e) => handleFormChange('profession', parseInt(e.target.value))}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, profession: parseInt(e.target.value) }))}
                       >
-                        <option value={0}>Gasista</option>
-                        <option value={1}>Electricista</option>
-                        <option value={2}>Plomero</option>
-                        <option value={3}>Carpintero</option>
-                        <option value={4}>Albañil</option>
-                        <option value={5}>Refrigeración</option>
+                        {Object.entries(PROFESSION_MAP).map(([key, value]) => (
+                          <option key={key} value={key}>{value}</option>
+                        ))}
                       </Form.Select>
                     </Form.Group>
                   </Col>
@@ -466,39 +402,35 @@ const SearchCustProfess = () => {
                       <Form.Control
                         type="number"
                         value={editForm.fee || ''}
-                        onChange={(e) => handleFormChange('fee', e.target.value)}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, fee: e.target.value }))}
                       />
                     </Form.Group>
                   </Col>
                 </Row>
-                <Row>
-                  <Col md={12}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Disponibilidad</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={editForm.availability || ''}
-                        onChange={(e) => handleFormChange('availability', e.target.value)}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
+                <Form.Group className="mb-3">
+                  <Form.Label>Disponibilidad</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={editForm.availability || ''}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, availability: e.target.value }))}
+                  />
+                </Form.Group>
               </>
             )}
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
+          <BSButton variant="secondary" onClick={closeModal}>
             Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleSaveChanges}>
+          </BSButton>
+          <BSButton variant="primary" onClick={handleSaveChanges}>
             Guardar Cambios
-          </Button>
+          </BSButton>
         </Modal.Footer>
       </Modal>
 
-      {/* Modal de confirmación para eliminar usuario */}
-      <Modal show={showDeleteModal} onHide={handleCloseDeleteModal} centered>
+      {/* Modal de confirmación de eliminación */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Confirmar eliminación</Modal.Title>
         </Modal.Header>
@@ -514,12 +446,12 @@ const SearchCustProfess = () => {
           </p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseDeleteModal}>
+          <BSButton variant="secondary" onClick={() => setShowDeleteModal(false)}>
             Cancelar
-          </Button>
-          <Button variant="danger" onClick={confirmHardDelete}>
+          </BSButton>
+          <BSButton variant="danger" onClick={confirmHardDelete}>
             Sí, eliminar
-          </Button>
+          </BSButton>
         </Modal.Footer>
       </Modal>
     </Container>

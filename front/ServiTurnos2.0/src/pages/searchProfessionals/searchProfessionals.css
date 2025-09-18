@@ -1,53 +1,59 @@
 
 
-.search-professionals {
+.search-container {
   align-self: flex-start;
   width: 100%;
   margin-top: 1rem;
 }
 
-.search-professionals .card {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+.professional-card {
   border: none;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background-color: #afc5d4 !important;
 }
 
-.search-professionals .card-img {
+.professional-avatar {
   width: 150px;
   height: 150px;
   object-fit: cover;
-  border-radius: 100px;
-  margin-right: 24px;
+  border-radius: 50%;
 }
 
-.search-professionals .card-body {
-  padding: 0;
-}
-
-.search-professionals .card-title {
+.professional-title {
   font-size: 1.3rem;
-  margin-bottom: 0.7rem;
+  font-weight: 600;
+  margin: 0;
 }
 
-.search-professionals .card-text {
-  margin-bottom: 1rem;
+.professional-info {
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
-.search-professionals .btn-success {
+.professional-info div {
+  margin-bottom: 0.25rem;
+}
+
+.request-btn {
   border-radius: 8px;
   padding: 8px 24px;
 }
 
-.card-btn-container {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-}
-
-.card-professional {
-  background-color: #afc5d4 !important; /* Azul pastel */
+@media (max-width: 768px) {
+  .professional-card > div {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .professional-avatar {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1rem;
+  }
+  
+  .professional-title {
+    font-size: 1.1rem;
+  }
 }
 

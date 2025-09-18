@@ -1,69 +1,96 @@
-.search-cust-profess {
+.search-container {
   align-self: flex-start;
   width: 100%;
   margin-top: 1rem;
 }
 
-.search-cust-profess .card {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+.tab-container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tab-button {
+  flex: 1;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  padding: 10px 0;
+  text-align: center;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  color: #6b635a;
+  width: 100%;
+  display: block;
+  font-weight: normal;
+}
+
+.tab-button:hover {
+  color: #6b635a;
+  background-color: #e0e0e0;
+}
+
+.tab-button.active {
+  background-color: #aa9d8e;
+  color: #f8f9fa;
+}
+
+.user-card {
   border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: row;
   align-items: center;
   padding: 1.5rem;
 }
 
-.search-cust-profess .card-img {
+.user-avatar {
   width: 150px;
   height: 150px;
   object-fit: cover;
-  border-radius: 100px;
+  border-radius: 50%;
   margin-right: 24px;
 }
 
-.search-cust-profess .card-body {
+.user-body {
   padding: 0;
+  flex: 1;
 }
 
-.search-cust-profess .card-title {
+.user-title {
   font-size: 1.3rem;
   margin-bottom: 0.7rem;
+  font-weight: 600;
 }
 
-.search-cust-profess .card-text {
+.user-info {
   margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
-.search-cust-profess .btn-modify {
-  border-radius: 8px;
-  padding: 8px 24px;
-}
-
-.search-cust-profess .btn-delete {
-  border-radius: 8px;
-  padding: 8px 24px;
-}
-
-.search-cust-profess .btn-hard-delete {
-  border-radius: 8px;
-  padding: 8px 24px;
-}
-
-.card-btn-container {
-  display: flex;
-  justify-content: flex-end;
+.user-actions {
   width: 100%;
   gap: 8px;
 }
 
+.btn-action {
+  border-radius: 8px;
+  padding: 8px 24px;
+}
+
 .user-type-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 0.25rem 0.75rem;
   border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  background-color: #e9ecef;
+  font-size: 0.6rem;
+  font-weight: 600;
+  background: #e9ecef;
   color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+  margin-left: 0.5rem;
 }
 
 .invisible-field {
@@ -73,9 +100,36 @@
 }
 
 .card-professional {
-  background-color: #afc5d4 !important; /* Azul pastel */
+  background-color: #afc5d4 !important;
 }
 
 .card-customer {
-  background-color: #bbdebb !important; /* Verde pastel */
+  background-color: #bbdebb !important;
+}
+
+@media (max-width: 768px) {
+  .user-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .user-avatar {
+    width: 120px;
+    height: 120px;
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .user-title {
+    font-size: 1.1rem;
+  }
+  
+  .user-actions {
+    justify-content: center;
+  }
+  
+  .tab-button {
+    padding: 8px 0;
+    font-size: 0.9rem;
+  }
 }
