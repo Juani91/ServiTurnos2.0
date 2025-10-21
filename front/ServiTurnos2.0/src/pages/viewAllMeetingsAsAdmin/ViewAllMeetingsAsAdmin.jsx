@@ -333,23 +333,24 @@ const ViewAllMeetingsAsAdmin = () => {
             <div className="d-flex justify-content-end gap-2 mt-auto">
               {canEdit && (
                 <Button 
-                  variant="info"
-                  size="sm"
-                  onClick={() => openModal('edit', meeting)}
-                  className="btn-action-admin"
-                >
-                  Editar
-                </Button>
-              )}
-              {canStop && (
-                <Button 
-                  variant={meeting.available ? "warning" : "success"}
+                  variant={meeting.available ? "info" : "success"}
                   size="sm"
                   onClick={() => openModal('stop', meeting)}
                   className="btn-action-admin"
                 >
                   {meeting.available ? 'Detener' : 'Reestablecer'}
                 </Button>
+              )}
+              {canStop && (
+                <Button 
+                  variant="warning"
+                  size="sm"
+                  onClick={() => openModal('edit', meeting)}
+                  className="btn-action-admin"
+                >
+                  Modificar
+                </Button>
+                
               )}
               <Button 
                 variant="danger" 
@@ -382,7 +383,7 @@ const ViewAllMeetingsAsAdmin = () => {
         </Modal.Header>
         <Modal.Body>
           <p>
-            ¿Estás seguro que querés {type === 'delete' ? 'eliminar permanentemente' : 
+            ¿Estás seguro de que quieres {type === 'delete' ? 'eliminar permanentemente' : 
             (meeting?.available ? 'detener' : 'reestablecer')} esta meeting entre{' '}
             <strong>{customerName}</strong> y <strong>{professionalName}</strong>?
           </p>

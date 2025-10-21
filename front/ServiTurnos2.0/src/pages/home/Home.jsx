@@ -37,7 +37,7 @@ const Home = () => {
           highlight: 'Complete su perfil al 100% para acceder a la lista de profesionales disponibles.'
         },
         { icon: '🔍', title: 'Buscar Profesionales', description: 'Explore nuestro directorio de profesionales calificados y solicite turnos según sus necesidades.' },
-        { icon: '📋', title: 'Mis Citas', description: 'Gestione sus citas programadas y manténgase al día con las solicitudes pendientes de confirmación.' }
+        { icon: '📋', title: 'Citas', description: 'Gestione sus citas programadas y manténgase al día con las solicitudes pendientes de confirmación.' }
       ]
     },
     Professional: {
@@ -51,7 +51,7 @@ const Home = () => {
           highlight: 'Mantenga su perfil completo al 100% para aparecer en las búsquedas de los clientes.'
         },
         { icon: '📨', title: 'Solicitudes', description: 'Revise y gestione las solicitudes de trabajo enviadas por clientes interesados en sus servicios.' },
-        { icon: '🗓️', title: 'Mis Citas', description: 'Organice y administre su agenda de citas confirmadas con sus clientes.' }
+        { icon: '🗓️', title: 'Citas', description: 'Organice y administre su agenda de citas confirmadas con sus clientes.' }
       ]
     }
   }

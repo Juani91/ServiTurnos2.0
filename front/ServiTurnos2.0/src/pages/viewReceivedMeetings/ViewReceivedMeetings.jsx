@@ -44,9 +44,17 @@ const ViewReceivedMeetings = () => {
 
     if (meetingsRes.success && customersRes.success) {
       const availableMeetings = meetingsRes.data.filter(meeting => meeting.available === true)
-      setMeetings(availableMeetings)
+      
+      // Ordenar las solicitudes por fecha y hora (de menor a mayor)
+      const sortedMeetings = availableMeetings.sort((a, b) => {
+        const dateA = new Date(a.meetingDate)
+        const dateB = new Date(b.meetingDate)
+        return dateA - dateB
+      })
+      
+      setMeetings(sortedMeetings)
       setCustomers(customersRes.data)
-      setFiltered(availableMeetings)
+      setFiltered(sortedMeetings)
     } else {
       showToast('Error al cargar las solicitudes', 'error')
     }
@@ -71,7 +79,15 @@ const ViewReceivedMeetings = () => {
         customer.lastName?.toLowerCase().includes(q)
       )
     })
-    setFiltered(results)
+    
+    // Mantener el orden por fecha después del filtrado
+    const sortedResults = results.sort((a, b) => {
+      const dateA = new Date(a.meetingDate)
+      const dateB = new Date(b.meetingDate)
+      return dateA - dateB
+    })
+    
+    setFiltered(sortedResults)
   }
 
   const getCustomerInfo = (customerId) => customers.find(customer => customer.id === customerId)
@@ -247,7 +263,7 @@ const ViewReceivedMeetings = () => {
       {renderConfirmationModal(
         'accept',
         'Confirmar aceptación',
-        '¿Estás seguro que querés aceptar la solicitud de {customerName}?',
+        '¿Estás seguro de que quieres aceptar la solicitud de {customerName}?',
         'Sí, aceptar solicitud',
         'success',
         confirmAccept,
@@ -257,7 +273,7 @@ const ViewReceivedMeetings = () => {
       {renderConfirmationModal(
         'reject',
         'Confirmar rechazo',
-        '¿Estás seguro que querés rechazar la solicitud de {customerName}?',
+        '¿Estás seguro de que quieres rechazar la solicitud de {customerName}?',
         'Sí, rechazar solicitud',
         'danger',
         confirmReject,

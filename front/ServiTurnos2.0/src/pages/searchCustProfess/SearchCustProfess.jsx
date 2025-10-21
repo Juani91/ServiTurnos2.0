@@ -250,15 +250,7 @@ const SearchCustProfess = () => {
             )}
           </Card.Text>
           <div className="user-actions d-flex justify-content-end gap-2">
-            {activeTab === 'blocked' && (
-              <Button 
-                variant="dark" 
-                className="btn-action"
-                onClick={() => handleHardDelete(user)}
-              >
-                Eliminar
-              </Button>
-            )}
+            
             <Button 
               variant="warning" 
               className="btn-action"
@@ -273,6 +265,15 @@ const SearchCustProfess = () => {
             >
               {activeTab === 'active' ? 'Bloquear' : 'Desbloquear'}
             </Button>
+            {activeTab === 'blocked' && (
+              <Button 
+                variant="dark" 
+                className="btn-action"
+                onClick={() => handleHardDelete(user)}
+              >
+                Eliminar
+              </Button>
+            )}
           </div>
         </Card.Body>
       </Card>

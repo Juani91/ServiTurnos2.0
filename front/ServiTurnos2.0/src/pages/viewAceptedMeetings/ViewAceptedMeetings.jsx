@@ -44,9 +44,17 @@ const ViewAceptedMeetings = () => {
 
     if (meetingsRes.success && customersRes.success) {
       const availableMeetings = meetingsRes.data.filter(meeting => meeting.available === true)
-      setMeetings(availableMeetings)
+      
+      // Ordenar las citas por fecha y hora (de menor a mayor)
+      const sortedMeetings = availableMeetings.sort((a, b) => {
+        const dateA = new Date(a.meetingDate)
+        const dateB = new Date(b.meetingDate)
+        return dateA - dateB
+      })
+      
+      setMeetings(sortedMeetings)
       setCustomers(customersRes.data)
-      setFiltered(availableMeetings)
+      setFiltered(sortedMeetings)
     } else {
       showToast('Error al cargar las citas aceptadas', 'error')
     }
@@ -73,7 +81,15 @@ const ViewAceptedMeetings = () => {
         customer.lastName?.toLowerCase().includes(q)
       )
     })
-    setFiltered(results)
+    
+    // Mantener el orden por fecha después del filtrado
+    const sortedResults = results.sort((a, b) => {
+      const dateA = new Date(a.meetingDate)
+      const dateB = new Date(b.meetingDate)
+      return dateA - dateB
+    })
+    
+    setFiltered(sortedResults)
   }
 
   const getCustomerInfo = (customerId) => customers.find(customer => customer.id === customerId)

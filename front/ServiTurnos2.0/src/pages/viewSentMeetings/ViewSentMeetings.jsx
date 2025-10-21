@@ -29,13 +29,13 @@ const STATUS_MAP = {
 const STATUS_CATEGORIES = {
   pending: [0],
   accepted: [1],
-  rejected: [2, 3, 4]
+  other: [2, 3, 4]  // Cambié "rejected" por "other"
 }
 
 const EMPTY_MESSAGES = {
   pending: 'No se encuentran meetings pendientes',
   accepted: 'No se encuentran meetings aceptadas',
-  rejected: 'No se encuentran meetings rechazadas'
+  other: 'No se encuentran meetings en esta categoría'  // Cambié "rejected" por "other"
 }
 
 const parseJwt = (token) => {
@@ -75,9 +75,17 @@ const ViewSentMeetings = () => {
 
     if (meetingsRes.success && professionalsRes.success) {
       const availableMeetings = meetingsRes.data.filter(meeting => meeting.available === true)
-      setMeetings(availableMeetings)
+      
+      // Ordenar las meetings por fecha y hora (de menor a mayor)
+      const sortedMeetings = availableMeetings.sort((a, b) => {
+        const dateA = new Date(a.meetingDate)
+        const dateB = new Date(b.meetingDate)
+        return dateA - dateB
+      })
+      
+      setMeetings(sortedMeetings)
       setProfessionals(professionalsRes.data)
-      filterMeetingsByStatus(availableMeetings, activeTab)
+      filterMeetingsByStatus(sortedMeetings, activeTab)
     } else {
       showToast('Error al cargar las meetings', 'error')
     }
@@ -99,7 +107,15 @@ const ViewSentMeetings = () => {
     const filteredMeetings = allMeetings.filter(meeting => 
       meeting.available === true && getStatusCategory(meeting.status) === status
     )
-    setFiltered(filteredMeetings)
+    
+    // Ordenar por fecha después del filtrado
+    const sortedFiltered = filteredMeetings.sort((a, b) => {
+      const dateA = new Date(a.meetingDate)
+      const dateB = new Date(b.meetingDate)
+      return dateA - dateB
+    })
+    
+    setFiltered(sortedFiltered)
   }
 
   const handleInputChange = (e) => {
@@ -124,7 +140,15 @@ const ViewSentMeetings = () => {
         PROFESSION_MAP[professional.profession]?.toLowerCase().includes(q)
       )
     })
-    setFiltered(results)
+    
+    // Mantener el orden por fecha después del filtrado
+    const sortedResults = results.sort((a, b) => {
+      const dateA = new Date(a.meetingDate)
+      const dateB = new Date(b.meetingDate)
+      return dateA - dateB
+    })
+    
+    setFiltered(sortedResults)
   }
 
   const handleTabChange = (tab) => {
@@ -155,7 +179,7 @@ const ViewSentMeetings = () => {
 
   const openModal = (type, meeting) => {
     if (type === 'finalize' && !canFinalizeMeeting(meeting.meetingDate)) {
-      showToast('Solo se puede finalizar la meeting después de la hora pactada', 'warning')
+      showToast('Solo se puede finalizar la meeting después de la hora pactada', 'info')
       return
     }
     setModals(prev => ({ ...prev, [type]: { show: true, meeting } }))
@@ -341,7 +365,7 @@ const ViewSentMeetings = () => {
           <div className="d-flex gap-2">
             {renderTabButton('pending', 'Pendientes', counts.pending)}
             {renderTabButton('accepted', 'Aceptadas', counts.accepted)}
-            {renderTabButton('rejected', 'Rechazadas', counts.rejected)}
+            {renderTabButton('other', 'Otras', counts.other)}
           </div>
         </Col>
       </Row>
@@ -372,7 +396,7 @@ const ViewSentMeetings = () => {
       {renderConfirmationModal(
         'cancel',
         'Confirmar cancelación',
-        '¿Estás seguro que querés cancelar esta meeting con {professionalName}?',
+        '¿Estás seguro que quieres cancelar este turno con {professionalName}?',
         'Sí, cancelar meeting',
         'danger',
         confirmCancel,
@@ -382,7 +406,7 @@ const ViewSentMeetings = () => {
       {renderConfirmationModal(
         'finalize',
         'Confirmar finalización', 
-        '¿Estás seguro que querés finalizar esta meeting con {professionalName}?',
+        '¿Estás seguro que quieres finalizar este turno con {professionalName}?',
         'Sí, finalizar meeting',
         'success',
         confirmFinalize,

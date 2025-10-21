@@ -19,9 +19,9 @@ const PROFESSION_MAP = {
 
 const TIME_SLOTS = (() => {
   const slots = []
-  for (let hour = 8; hour <= 18; hour++) {
+  for (let hour = 7; hour <= 19; hour++) {
     for (let minute of [0, 30]) {
-      if (hour === 18 && minute === 30) break
+      if (hour === 19 && minute === 31) break
       slots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`)
     }
   }
