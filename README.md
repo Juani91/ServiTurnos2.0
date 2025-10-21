@@ -6,6 +6,8 @@ ServiTurnos2.0 es una plataforma web desarrollada como ejercicio de práctica pe
 
 Tiene como objetivo conectar a profesionales de diversas áreas con potenciales clientes, permitiendo la creación y gestión de turnos de manera personalizada y eficiente. Los clientes pueden explorar perfiles profesionales, conocer los servicios ofrecidos, consultar disponibilidades y enviar solicitudes para acordar un turno según sus necesidades. De esta manera, los profesionales reciben múltiples solicitudes, las cuales pueden analizar y decidir si aceptar o rechazar conforme a su criterio. A su vez, los administradores cuentan con herramientas para gestionar de manera integral tanto los perfiles de los usuarios como las citas generadas en la aplicación, asegurando así un funcionamiento organizado y seguro de la plataforma.
 
+El proyecto está en evolución y aún le quedan numerosas mejoras y tareas pendientes. Existe una lista de funcionalidades y refinamientos planificados que probablemente seguirá creciendo con el tiempo; por ahora el desarrollo alcanza este punto, pero tengo previsto incorporar nuevas funcionalidades en futuras iteraciones.
+
 ## ✨ Características principales
 
 - Registro y autenticación de clientes y profesionales.
@@ -63,11 +65,12 @@ _Nota 2: Reemplaza los comandos según la tecnología que uses._
 - Git
 
 ### Herramientas
-- Postman (testing de API)
-- Visual Studio Code (entorno de desarrollo - frontend)
-- Visual Studio 2022 (entorno de desarrollo - backend)
+- Visual Studio Code (Entorno de desarrollo - frontend)
+- Visual Studio 2022 (Entorno de desarrollo - backend)
+- Postman (Testing de API)
+- Git (Control de versiones)
+- Jira (Planificación y flujo de trabajo)
 
 ## 📽️ Video Demostrativo
 
-<!-- Agrega aquí una imagen del sistema funcionando cuando la tengas disponible. Ejemplo: -->
-<!-- ![Screenshot](screenshot.png) -->
+Puedes ver una demo de la aplicación [aquí](https://www.youtube.com/watch?v=lnIhnMNWzG8) .
